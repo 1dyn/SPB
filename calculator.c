@@ -1,753 +1,796 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-typedef struct Node {
-	char val;
-	struct Node *prev;
-	struct Node *next;
-}
-Node;
-// ³ëµå
-typedef struct DLL {
-	Node *head;
-	int size;
-}
-DLL;
+
+typedef struct Node{
+    char val;
+    struct Node *prev;
+    struct Node *next;
+}Node;
+// ë…¸ë“œ
+
+typedef struct DLL{
+    Node *head;
+    int size;
+}DLL;
 // DLL pointer
-typedef struct OPNode {
-	struct Node *Operator;
-	struct OPN *prev;
-	struct OPN *next;
-	int negative;
-	// À½¼ö ¾ç¼ö Ã¼Å©  
-	int intPart;
-	// Á¤¼öºÎºĞ ÀÚ¸´¼ö
-	int frcPart;
-	// ¼Ò¼öºÎºĞ ÀÚ¸´¼ö
-}
-OPN;
-// ¿¬»êÀÚ¿Í ÇÇ¿¬»êÀÚ Æ÷ÀÎÆÃ¿ë ³ëµå
-typedef struct OP {
-	OPN *head;
-	int size;
-}
-OP;
-typedef struct StackNode {
-	OPN * val;
-	struct StackNode *prev;
-}
-StackNode;
-// ½ºÅÃ ³ëµå
+
+typedef struct OPNode{
+    struct Node *Operator;
+    struct OPN *prev;
+    struct OPN *next;
+    int negative; // ìŒìˆ˜ ì–‘ìˆ˜ ì²´í¬  
+    int intPart; // ì •ìˆ˜ë¶€ë¶„ ìë¦¿ìˆ˜
+    int frcPart; // ì†Œìˆ˜ë¶€ë¶„ ìë¦¿ìˆ˜
+}OPN;
+// ì—°ì‚°ìì™€ í”¼ì—°ì‚°ì í¬ì¸íŒ…ìš© ë…¸ë“œ
+
+typedef struct OP{
+    OPN *head;
+    int size;
+}OP;
+
+typedef struct StackNode{
+    OPN * val;
+    struct StackNode *prev;
+}StackNode;
+// ìŠ¤íƒ ë…¸ë“œ
+
 typedef struct Stack {
-	StackNode *top;
-	OPN* topVal;
+    StackNode *top;
+    OPN* topVal;
+}Stack;
+// ìŠ¤íƒìŠ¤íƒ
+
+Node *newnode(char n){
+    Node *temp = (Node *)malloc(sizeof(Node));
+    temp->val = n;
+    temp->prev = NULL;
+    temp->next = NULL;
+    return temp;
 }
-Stack;
-// ½ºÅÃ½ºÅÃ
-Node *newnode(char n) {
-	Node *temp = (Node *)malloc(sizeof(Node));
-	temp->val = n;
-	temp->prev = NULL;
-	temp->next = NULL;
-	return temp;
+// ì¸ìë¡œ charë¥¼ ë°›ëŠ” ì´ìœ 
+// í¬ì¸í„° ë°›ëŠ” ê²ƒ ë³´ë‹¤ ë‚˜ì„ ê²ƒ ê°™ìŒ
+
+DLL *newDLL(){
+    DLL *temp = (DLL *)malloc(sizeof(DLL));
+    temp->head = NULL;
+    temp->size = 0;
+    return temp;
 }
-// ÀÎÀÚ·Î char¸¦ ¹Ş´Â ÀÌÀ¯
-// Æ÷ÀÎÅÍ ¹Ş´Â °Í º¸´Ù ³ªÀ» °Í °°À½
-DLL *newDLL() {
-	DLL *temp = (DLL *)malloc(sizeof(DLL));
-	temp->head = NULL;
-	temp->size = 0;
-	return temp;
+
+OPN *newOPN(Node *nn, int intP, int frcP, int ngt){
+    OPN *temp = (OPN *)malloc(sizeof(OPN));
+    temp->Operator = nn;
+    temp->intPart = intP;
+    temp->frcPart = frcP;
+    temp->negative = ngt;
+    temp->next = NULL;
+    temp->prev = NULL;
+    return temp;
 }
-OPN *newOPN(Node *nn, int intP, int frcP, int ngt) {
-	OPN *temp = (OPN *)malloc(sizeof(OPN));
-	temp->Operator = nn;
-	temp->intPart = intP;
-	temp->frcPart = frcP;
-	temp->negative = ngt;
-	temp->next = NULL;
-	temp->prev = NULL;
-	return temp;
+// í”¼ì—°ì‚°ì / ì—°ì‚°ì í¬ì¸í„° ë…¸ë“œ
+
+OP *newOP(){
+    OP *temp = (OP *)malloc(sizeof(OP));
+    temp->head = NULL;
+    temp->size = 0;
+    return temp;
 }
-// ÇÇ¿¬»êÀÚ / ¿¬»êÀÚ Æ÷ÀÎÅÍ ³ëµå
-OP *newOP() {
-	OP *temp = (OP *)malloc(sizeof(OP));
-	temp->head = NULL;
-	temp->size = 0;
-	return temp;
+// í”¼ì—°ì‚°ì/ ì—°ì‚°ì í¬ì¸íŒ… ìš©ë„
+
+StackNode *newStackNode(OPN *n){
+    StackNode *temp = (StackNode *)malloc(sizeof(StackNode));
+    temp->val = n;
+    temp->prev = NULL;
+    return temp;
 }
-// ÇÇ¿¬»êÀÚ/ ¿¬»êÀÚ Æ÷ÀÎÆÃ ¿ëµµ
-StackNode *newStackNode(OPN *n) {
-	StackNode *temp = (StackNode *)malloc(sizeof(StackNode));
-	temp->val = n;
-	temp->prev = NULL;
-	return temp;
+
+Stack *newStack(){
+    Stack *temp = (Stack *)malloc(sizeof(Stack));
+    temp->top = NULL;
+    temp->topVal = NULL;
+    return temp;
 }
-Stack *newStack() {
-	Stack *temp = (Stack *)malloc(sizeof(Stack));
-	temp->top = NULL;
-	temp->topVal = NULL;
-	return temp;
-}
-void append(DLL *list, char n);
-void OPappend(OP *list, Node *nn, int intP, int frcP, int ngt);
-void insert(OPN *node, int index);
-void push(Stack *SL, OPN *n);
-void OPNodePrint(OPN *opn);
-void calADD(OPN* opn1, OPN* opn2);
-void calSUB(OPN* opn2, OPN* opn1);
-void calculate(OP* OP);
-OPN *pop(Stack *SL);
-OP *in_to_postfix(OP *inputlist);
+
 // typedef
 // typedef
 // typedef
-void append(DLL *list, char n) {
-	Node* now = list->head;
-	Node* nn = newnode(n);
-	//printf("%c", nn->val);
-	if(list->head == NULL) {
-		list->head = nn;
-		list->size++;
-		return;
-	}
-	while(now->next != NULL) {
-		now = now->next;
-	}
-	now->next = nn;
-	nn->prev = now;
-	list->size++;
+
+void append(DLL *list, char n){
+    Node* now = list->head;
+    Node* nn = newnode(n);
+    //printf("%c", nn->val);
+
+    if(list->head == NULL){
+       list->head = nn;
+        list->size++;
+        return;
+    }
+    while(now->next != NULL){
+        now = now->next;
+    }
+    now->next = nn;
+    nn->prev = now;
+    list->size++;
 }
-// °ªÀ» ¹Ù·Î ³Ö¾îÁÙ ¼ö ÀÖ´Â DLL Append
-void OPappend(OP *list, Node *nn, int intP, int frcP, int ngt) {
-	// nnÀÌ DLL¿¡ ÀÖ´Â ¸¶Áö¸· ÀÚ¸´°ª ÁÖ
-	if(frcP == 0 && intP != 0) {
-		Node *dot = newnode('.');
-		Node *zero = newnode('0');
-		dot->next = zero;
-		zero->prev = dot;
-		if(nn->next != NULL) {
-			Node *temp = nn->next;
-			nn->next = dot;
-			dot->prev = nn;
-			zero->next = temp;
-			temp->prev = zero;
-		} else {
-			nn->next = dot;
-			dot->prev = nn;
-		}
-		nn = zero;
-		frcP = 1;
-	}
-	OPN* now = list->head;
-	OPN* n = newOPN(nn, intP, frcP, ngt);
-	if(list->head == NULL) {
-		list->head = n;
-		list->size++;
-		return;
-	}
-	while(now->next != NULL) {
-		now = now->next;
-	}
-	now->next = n;
-	n->prev = now;
-	now = n;
-	list->size++;
+// ê°’ì„ ë°”ë¡œ ë„£ì–´ì¤„ ìˆ˜ ìˆëŠ” DLL Append
+
+void OPappend(OP *list, Node *nn, int intP, int frcP, int ngt){
+// nnì´ DLLì— ìˆëŠ” ë§ˆì§€ë§‰ ìë¦¿ê°’ ì£¼
+    if(frcP == 0 && intP != 0){
+       Node *dot = newnode('.');
+        Node *zero = newnode('0');
+        dot->next = zero;
+        zero->prev = dot;
+      
+      if(nn->next != NULL){
+            Node *temp = nn->next;
+            nn->next = dot;
+            dot->prev = nn;
+            zero->next = temp;
+            temp->prev = zero;
+        }
+       else{
+            nn->next = dot;
+            dot->prev = nn;
+        }
+        nn = zero;
+        frcP = 1;
+    }
+   
+    OPN* now = list->head;
+    OPN* n = newOPN(nn, intP, frcP, ngt);
+    
+    if(list->head == NULL){
+       list->head = n;
+        list->size++;
+        return;
+    }
+    while(now->next != NULL){
+        now = now->next;
+    }
+    now->next = n;
+    n->prev = now;
+    now = n;
+    list->size++;
 }
 // test
-void insert(OPN *node, int index) {
-	Node *now = node->Operator;
-	if (index <= 0) {
-		node->frcPart -= index;
-		while (index < 0) {
-			Node* a = newnode('0');
-			if (now->next == NULL) {
-				now->next = a;
-				a->prev = now;
-			} else {
-				Node *temp = now->next;
-				now->next = a;
-				a->prev = now;
-				a->next = temp;
-				temp->prev = a;
-			}
-			now = now->next;
-			node->Operator = node->Operator->next;
-			index++;
-		}
-	} else {
-		int i = node->intPart + node->frcPart;
-		node->intPart += index;
-		while (i > 0) {
-			now = now->prev;
-			i--;
-		}
-		while (index > 0) {
-			Node* a = newnode('0');
-			now->prev = a;
-			a->next = now;
-			now = now->prev;
-			index--;
-		}
-	}
+
+void insert(OPN *node, int index){
+    Node *now = node->Operator;
+
+    if (index <= 0){
+        node->frcPart -= index;
+        while (index < 0) {
+          Node* a = newnode('0');
+            if (now->next == NULL) {
+             now->next = a;
+                a->prev = now;
+            }
+         else {
+             Node *temp = now->next;
+                now->next = a;
+                a->prev = now;
+                a->next = temp;
+                temp->prev = a;
+            }
+            now = now->next;
+            node->Operator = node->Operator->next;
+            index++;
+        }
+    }
+    else {
+        int i = node->intPart + node->frcPart;
+        node->intPart += index;
+        while (i > 0) {
+            now = now->prev;
+            i--;
+        }
+        while (index > 0) {
+            Node* a = newnode('0');
+            now->prev = a;
+            a->next = now;
+            now = now->prev;
+            index--;
+        }
+    }
 }
-// ÀÚ¸´¼ö ¸ÂÃß´Â ÇÔ¼ö
-void push(Stack *SL, OPN *n) {
-	StackNode *nn = newStackNode(n);
-	if(SL->top == NULL) {
-		SL->top = nn;
-		SL->topVal = nn->val;
-	} else {
-		nn->prev = SL->top;
-		SL->top = nn;
-		SL->topVal = nn->val;
-	}
+// ìë¦¿ìˆ˜ ë§ì¶”ëŠ” í•¨ìˆ˜
+
+void push(Stack *SL, OPN *n){
+    StackNode *nn = newStackNode(n);
+    if(SL->top == NULL){
+        SL->top = nn;
+        SL->topVal = nn->val;
+    }
+   else {
+        nn->prev = SL->top;
+        SL->top = nn;
+        SL->topVal = nn->val;
+    }
 }
-OPN *pop(Stack *SL) {
-	if(SL->top == NULL) {
-		return NULL;
-	}
-	OPN *val = SL->topVal;
-	if(SL->top->prev == NULL) {
-		SL->top = NULL;
-		return val;
-	} else {
-		StackNode *temp = SL->top->prev;
-		SL->top = temp;
-		SL->topVal = temp->val;
-		return val;
-	}
+
+OPN *pop(Stack *SL){
+    if(SL->top == NULL){return NULL;}
+    OPN *val = SL->topVal;
+
+    if(SL->top->prev == NULL){
+        SL->top = NULL;
+        return val;
+    }
+    else {
+        StackNode *temp = SL->top->prev;
+        SL->top = temp;
+        SL->topVal = temp->val;
+        return val;
+    }
 }
-void OPNodePrint(OPN *opn) {
-	int intP = opn->intPart;
-	int frcP = opn->frcPart;
-	int k = intP + frcP;
-	if(opn->negative){
-		printf("-");
-	}
-	Node *temp = opn->Operator;
-	if(intP == 1 && frcP == 1 && opn->Operator->val == '0') {
-		Node *now = opn->Operator;
-		now = now->prev;
-		printf("%c", now->prev->val);
-		return;
-	}
-	//´ÜÀÏ Á¤¼öÀÎ °æ¿ì ex) 1.0 
-	while(k > 0) {
-		temp = temp->prev;
-		k--;
-	}
-	k = intP + frcP;
-	int temp1 = 0;
-	while(k > 0) {
-		if(temp->val == '0' && temp1==0) {
-			// 030.3000 Ã³·³ ¾Õ¿¡ 0ÀÌ ÀÖ´Â °æ¿ì print Á¦¿Ü
-		} else if(temp->val =='.') {
-			temp= temp->next;
-			k--;
-			break;
-			// .ÀÌ ³ª¿Â °æ¿ì ÀÏ´Ü print Áß´Ü.
-		} else {
-			temp1 = 1;
-			printf("%c", temp->val);
-			// Á¤¼ö¸¦ Ãâ·ÂÇÕ´Ï´Ù.
-		}
-		temp= temp->next;
-		k--;
-		// ÀÌµ¿
-	}
-	int jj=0;
-	// »ç½Ç .Àº ¹«Á¶°Ç ÀÖ±â ¶§¹®¿¡...  
-	while(temp->next != NULL) {
-		if(temp->val == '+' || temp->val == '-'|| temp->val == '('|| temp->val == ')') {
-			// ÇÇ¿¬»êÀÚÀÇ  ³¡ÀÎ °æ¿ì Áß´Ü. 
-			break;
-		}
-		if(temp->val != '0') {
-			temp1 = jj;
-			// µÚ¿¡ 0ÀÌ ¾Æ´Ñ °ªÀÌ ÀÖ´Ù¸é temp¿¡ ±â·Ï
-		}
-		temp = temp->next;
-		jj++;
-		// °Ë»ç
-	}
-	// . µÚ·Î 0ÀÌ ¾Æ´Ñ °ªÀÌ ÀÖ´ÂÁö ¾ø´ÂÁö °Ë»ç.
-	if(temp1!=1 || temp1!=2) {
-		int ii=0;
-		printf(".");
-		for (ii=0;ii<jj;ii++) {
-			temp = temp->prev;
-		}
-		for (ii=0;ii<temp1+1;ii++) {
-			printf("%c", temp->val);
-			temp = temp->next;
-		}
-	}
-	// .µÚ·Î 0ÀÌ ¾Æ´Ñ °ªÀÌ ÀÖ´Â °æ¿ì Ãâ·Â.
+
+void OPNodePrint(OPN *opn){
+    int intP = opn->intPart;
+    int frcP = opn->frcPart;
+    int k = intP + frcP;
+    Node *temp = opn->Operator;
+
+    if(intP == 1 && frcP == 1 && opn->Operator->val == '0'){
+        Node *now = opn->Operator;
+        now = now->prev;
+        printf("%c", now->prev->val);
+        return;
+    } //ë‹¨ì¼ ì •ìˆ˜ì¸ ê²½ìš° ex) 1.0 
+
+    while(k > 0){
+        temp = temp->prev;
+        k--;
+    }
+    k = intP + frcP;
+    int temp1 = 0;
+   
+    while(k > 0){
+        if(temp->val == '0' && temp1==0){
+        // 030.3000 ì²˜ëŸ¼ ì•ì— 0ì´ ìˆëŠ” ê²½ìš° print ì œì™¸ 
+       }else if(temp->val =='.'){
+           temp= temp->next;
+          k--;
+           break;
+           // .ì´ ë‚˜ì˜¨ ê²½ìš° ì¼ë‹¨ print ì¤‘ë‹¨. 
+       }
+      else{
+          temp1 = 1;
+             printf("%c", temp->val);
+             // ì •ìˆ˜ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤. 
+       }
+       temp= temp->next;
+       k--;
+       // ì´ë™ 
+    }
+    
+    int jj=0;
+    // ì‚¬ì‹¤ .ì€ ë¬´ì¡°ê±´ ìˆê¸° ë•Œë¬¸ì—...  
+    while(temp->next != NULL){
+        if(temp->val == '+' || temp->val == '-'|| temp->val == '('|| temp->val == ')'){
+            // í”¼ì—°ì‚°ìì˜  ëì¸ ê²½ìš° ì¤‘ë‹¨. 
+            break;
+          }
+         if(temp->val != '0'){
+            temp1 = jj;
+          // ë’¤ì— 0ì´ ì•„ë‹Œ ê°’ì´ ìˆë‹¤ë©´ tempì— ê¸°ë¡
+          }
+          temp = temp->next;
+          jj++;
+          // ê²€ì‚¬  
+    }
+    // . ë’¤ë¡œ 0ì´ ì•„ë‹Œ ê°’ì´ ìˆëŠ”ì§€ ì—†ëŠ”ì§€ ê²€ì‚¬.
+    
+    if(temp1!=1 || temp1!=2){
+        int ii=0;
+        printf(".");
+        for(ii=0;ii<jj;ii++){
+            temp = temp->prev;
+          }
+          for(ii=0;ii<temp1+1;ii++){
+           printf("%c", temp->val);
+             temp = temp->next;
+          }
+    }
+    // .ë’¤ë¡œ 0ì´ ì•„ë‹Œ ê°’ì´ ìˆëŠ” ê²½ìš° ì¶œë ¥. 
 }
-OP *in_to_postfix(OP *inputlist) {
-	Stack *sign = newStack();
-	// ±âÈ£¸¦ ÀúÀåÇÒ ½ºÅÃÀÎ sign ¼±¾ğ
-	OP *list = newOP();
-	// ÈÄÀ§Ç¥±â¹ıÀ¸·Î ¹Ù²Û °ªÀ» »õ·Ó°Ô ÀúÀåÇÏ´Â OP¼±¾ğ 
-	char val;
-	// ÆÄÀÏ¿¡¼­ ÀĞ¾î¿Â ÇÑ±ÛÀÚ¸¦ ÀúÀåÇÏ´Â º¯¼ö ¼±¾ğ
-	OPN *now = inputlist->head;
-	// ¸®½ºÆ® ¹Ş¾Æ¿Í¼­ °ª ³Ñ°ÜÁà¾ß ÇÔ
-	while (now != NULL) {
-		char val = now->Operator->val;
-		if (val == '(') {
-			push(sign, now);
-		} else if (val == ')') {
-			if(now->Operator->next != NULL) {
-				Node *prev = now->Operator->prev;
-				Node *next = now->Operator->next;
-				prev->next = next;
-				next->prev = prev;
-				// DLL ¿¡¼­ ')'¸¦ Á¦°ÅÇÔ
-			}
-			while (1) {
-				OPN *data = pop(sign);
-				if (data->Operator->val != '(') {
-					OPappend(list, data->Operator, data->intPart, data->frcPart, 0);
-				} else {
-					if (data->Operator->prev != NULL) {
-						Node *prev = data->Operator->prev;
-						Node *next = data->Operator->next;
-						prev->next = next;
-						next->prev = prev;
-						OPN *OPNprev = data->prev;
-						OPN *OPNnext = data->next;
-						OPNprev->next = OPNnext;
-						OPNnext->prev = OPNprev;
-					} else {
-						Node *next = data->Operator->next;
-						next->prev = NULL;
-					}
-					break;
-				}
-			}
-		} else if (val == '+' || val == '-') {
-			// (PopÇÏ¿© ¿¬»ê±âÈ£ÀÏ °æ¿ì list¿¡ ÀúÀå, ¾Æ´Ò°æ¿ì ´Ù½Ã PUSH) & ÇöÀç ¿¬»ê±âÈ£ PUSH
-			if (sign->topVal != NULL) {
-				OPN *data = pop(sign);
-				if (data->Operator->val == '+' || data->Operator->val == '-') {
-					OPappend(list, data->Operator, data->intPart, data->frcPart, data->negative);
-					push(sign, now);
-				} else {
-					push(sign, data);
-					push(sign, now);
-				}
-			} else {
-				push(sign, now);
-			}
-		} else {
-			OPappend(list, now->Operator, now->intPart, now->frcPart, now->negative);
-		}
-		now = now->next;
-	}
-	while (sign->top != NULL) {
-		OPN *data = pop(sign);
-		OPappend(list, data->Operator, data->intPart, data->frcPart, data->negative);
-	}
-	return list;
-	// list(ÈÄÀ§Ç¥±â¹ıÀ¸·Î ¹Ù²Û DLL)¸¦ ¸®ÅÏÇØÁÜ
+
+OP *in_to_postfix(OP *inputlist){
+    Stack *sign = newStack(); // ê¸°í˜¸ë¥¼ ì €ì¥í•  ìŠ¤íƒì¸ sign ì„ ì–¸
+    OP *list = newOP(); // í›„ìœ„í‘œê¸°ë²•ìœ¼ë¡œ ë°”ê¾¼ ê°’ì„ ìƒˆë¡­ê²Œ ì €ì¥í•˜ëŠ” OPì„ ì–¸ 
+    char val; // íŒŒì¼ì—ì„œ ì½ì–´ì˜¨ í•œê¸€ìë¥¼ ì €ì¥í•˜ëŠ” ë³€ìˆ˜ ì„ ì–¸
+    OPN *now = inputlist->head;
+    // ë¦¬ìŠ¤íŠ¸ ë°›ì•„ì™€ì„œ ê°’ ë„˜ê²¨ì¤˜ì•¼ í•¨
+    while (now != NULL){
+       char val = now->Operator->val;
+       
+        if (val == '(') {
+           push(sign, now);
+        } else if (val == ')') {
+           if(now->Operator->next != NULL){
+               Node *prev = now->Operator->prev;
+                Node *next = now->Operator->next;
+                prev->next = next;
+                next->prev = prev;
+                // DLL ì—ì„œ ')'ë¥¼ ì œê±°í•¨ 
+            }
+            while (1){
+               OPN *data = pop(sign);
+                if (data->Operator->val != '(') {
+                    OPappend(list, data->Operator, data->intPart, data->frcPart, 0);
+                }
+                else{
+                    if (data->Operator->prev != NULL) {
+                        Node *prev = data->Operator->prev;
+                        Node *next = data->Operator->next;
+                        prev->next = next;
+                        next->prev = prev;
+                        OPN *OPNprev = data->prev;
+                        OPN *OPNnext = data->next;
+                        OPNprev->next = OPNnext;
+                        OPNnext->prev = OPNprev;
+                    }
+                    else{
+                        Node *next = data->Operator->next;
+                        next->prev = NULL;
+                    }
+                   break;
+                }
+            }
+        } else if (val == '+' || val == '-'){
+          // (Popí•˜ì—¬ ì—°ì‚°ê¸°í˜¸ì¼ ê²½ìš° listì— ì €ì¥, ì•„ë‹ê²½ìš° ë‹¤ì‹œ PUSH) & í˜„ì¬ ì—°ì‚°ê¸°í˜¸ PUSH
+            if (sign->topVal != NULL) {
+                OPN *data = pop(sign);
+                if (data->Operator->val == '+' || data->Operator->val == '-') {
+                    OPappend(list, data->Operator, data->intPart, data->frcPart, data->negative);
+                    push(sign, now);
+                }
+                else{
+                    push(sign, data);
+                    push(sign, now);
+                }
+            }
+            else{
+                push(sign, now);
+            }
+        }
+        else {
+            OPappend(list, now->Operator, now->intPart, now->frcPart, now->negative);
+        }
+         now = now->next;
+    }
+   
+      while (sign->top != NULL) {
+        OPN *data = pop(sign);
+        OPappend(list, data->Operator, data->intPart, data->frcPart, data->negative);
+    }
+    return list; // list(í›„ìœ„í‘œê¸°ë²•ìœ¼ë¡œ ë°”ê¾¼ DLL)ë¥¼ ë¦¬í„´í•´ì¤Œ
 }
 // return = list
-void calculate(OP* OP) {
-	Stack *stack = newStack();
-	// ÇÇ ¿¬»êÀÚ ÀúÀå¿ë ½ºÅÃ
-	OPN *now = OP->head;
-	OPN *ans;
-	// OPN ºÒ·¯¿É´Ï´Ù...
-	while(now != NULL) {
-		char val = now->Operator->val;
-		if(val == '+' || val == '-') {
-			OPN *opn1 = pop(stack);
-			OPN *opn2 = pop(stack);
-			int opn1_intP = opn1->intPart;
-			int opn1_frcP = opn1->frcPart;
-			int opn2_intP = opn2->intPart;
-			int opn2_frcP = opn2->frcPart;
-			if(opn1_intP > opn2_intP) {
-				insert(opn2, opn1_intP - opn2_intP + 1);
-				insert(opn1, 1);
-				//opn2¿¡ opn1_intP-opn2_intP insert;
-			} else {
-				//opn1 < opn2;
-				insert(opn1, opn2_intP - opn1_intP + 1);
-				insert(opn2, 1);
-				//opn1¿¡ opn1_intP-opn2_intP insert;
-			}
-			if(opn1_frcP > opn2_frcP) {
-				insert(opn2, opn2_frcP - opn1_frcP - 1);
-				insert(opn1, -1);
-				//opn2¿¡ opn1_frcP-opn2_frcP insert;
-			} else {
-				insert(opn1, opn1_frcP - opn2_frcP - 1);
-				insert(opn2, -1);
-				//opn1¿¡ opn1_frcP-opn2_frcP insert;
-			}
-			if(val == '+') {
-				//printf("%c\n", opn1->Operator->val);
-				calADD(opn1, opn2);
-				// opn1 + opn2;
-				// °è»êÇÑ °ª ½ºÅÃ¿¡ ´Ù½Ã ³Ö¾îÁÖ¸é µÊ
-				ans = opn2;
-				push(stack, opn2);
-				now = now->next;
-			} else {
-				calSUB(opn2, opn1);
-				// pop2 - pop1;
-				ans = opn2;
-				push(stack, opn2);
-				now = now->next;
-				// »©±â ÇÔ¼ö ½ÇÇà
-			}
-			// ½ºÅÃ¿¡¼­ 2°³ÀÇ ÇÇ¿¬»êÀÚ¸¦ ²¨³» °è»êÇØ¾ß ÇÑ´Ù.
-		} else {
-			push(stack, now);
-			now = now->next;
-			// ÇÇ ¿¬»êÀÚ´Â ½ºÅÃ¿¡ ³Ö¾îµĞ´Ù.
-		}
-	}
-	printf("Final Answer is ");
-	OPNodePrint(ans);
-}
-void calADD(OPN* opn1, OPN* opn2) {
-	// opn2 + opn1 ÇüÅÂ·Î µé¾î¿È. 
-	if (opn2->negative == 0 && opn1->negative == 1) {
-		//  ¾ç¼ö + À½¼ö --> ¾ç¼ö - ¾ç¼ö  
-		opn1->negative = 0;
-		calSUB(opn2, opn1); // ¾ç¼ö opn2 - ¾ç¼ö opn1 
-		return;
-	} else if (opn2->negative == 1 && opn1->negative == 0) {
-		// À½¼ö opn2 + ¾ç¼ö opn1 --> ¾ç¼ö opn1 - ¾ç¼ö opn2; 
-		opn2->negative = 0;
-		calSUB(opn1, opn2);
-		return;
-	} else {
-		int intP = opn1->intPart;
-		int frcP = opn1->frcPart;
-		// ÀÚ¸´¼ö
-		int i, num1, num2, num3;
-		Node *now1 = opn1->Operator;
-		Node *now2 = opn2->Operator;
-		int upcount = 0;
-		for (i=0; i<frcP; i++) {
-			num2 = now2->val - 48;
-			num1 = now1->val - 48;
-			num3 = num1 + num2;
-			if(num3 > 9) {
-				Node *horse = now2->prev;
-				now2->val = (num3 % 10) + 48;
-				if((char)horse->val == '.') {
-					upcount = 1;
-				} else {
-					horse->val += 1;
+
+void calculate(OP* OP){
+    Stack *stack = newStack();
+    // í”¼ ì—°ì‚°ì ì €ì¥ìš© ìŠ¤íƒ
+    OPN *now = OP->head;
+    OPN *ans;
+    // OPN ë¶ˆëŸ¬ì˜µë‹ˆë‹¤...
+    while(now != NULL){
+        char val = now->Operator->val;
+        if(val == '+' || val == '-'){
+            OPN *opn1 = pop(stack);
+            OPN *opn2 = pop(stack);
+            int opn1_intP = opn1->intPart;
+            int opn1_frcP = opn1->frcPart;
+            int opn2_intP = opn2->intPart;
+            int opn2_frcP = opn2->frcPart;
+            if(opn1_intP > opn2_intP){
+                insert(opn2, opn1_intP - opn2_intP + 1);
+                insert(opn1, 1);
+                //opn2ì— opn1_intP-opn2_intP insert;
+            }
+            else{
+                //opn1 < opn2;
+                insert(opn1, opn2_intP - opn1_intP + 1);
+                insert(opn2, 1);
+                //opn1ì— opn1_intP-opn2_intP insert;
+            }
+
+            if(opn1_frcP > opn2_frcP){
+                insert(opn2, opn2_frcP - opn1_frcP - 1);
+                insert(opn1, -1);
+                //opn2ì— opn1_frcP-opn2_frcP insert;
+            }
+            else {
+                insert(opn1, opn1_frcP - opn2_frcP - 1);
+                insert(opn2, -1);
+                //opn1ì— opn1_frcP-opn2_frcP insert;
+            }
+         
+            // ìë¦¿ìˆ˜ ë§ì¶°ì£¼ëŠ” ì‘ì—…
+            //8printf("====== ìë¦¿ìˆ˜ ë§ì¶°ì£¼ëŠ” ì‘ì—… ======\n");
+            //printf("opn1 : ì •ìˆ˜ %d  ì†Œìˆ˜ %d\n", opn1->intPart, opn1->frcPart);
+            //printf("opn1 : ë§ˆì§€ë§‰ ìë¦¬ %c\n", opn1->Operator->val);
+            //printf("opn2 : ì •ìˆ˜ %d  ì†Œìˆ˜ %d\n", opn2->intPart, opn2->frcPart);
+            //printf("opn2 : ë§ˆì§€ë§‰ ìë¦¬ %c\n", opn2->Operator->val);
+            //printf("==================================\n");
+            if(val == '+'){
+                //printf("%c\n", opn1->Operator->val);
+                if (opn2->negative == 0 && opn1->negative == 0){ //ì–‘ìˆ˜ + ì–‘ìˆ˜
+					calADD(opn2,opn1);
+					ans = opn1;
+    			}
+    			else if (opn2->negative == 0 && opn1->negative == 1) { //ì–‘ìˆ˜ + ìŒìˆ˜
+    				opn1->negative = 0;
+    				calSUB(opn2,opn1);
+    				ans = opn2;
 				}
-			} else {
-				now2->val = num3 + 48;
-			}
-			now2 = now2->prev;
-			now1 = now1->prev;
-		}
-		if(now2->val == '.') {
-			now2 = now2->prev;
-		}
-		if(now1->val == '.') {
-			now1 = now1->prev;
-		}
-		//printf("%c %c", now1->val, now2->val);
-		for (i=0; i<intP; i++) {
-			num1 = now1->val;
-			num2 = now2->val;
-			num3 = num1 + num2 - 96;
-			if(i==0) {
-				num3 += upcount;
-			}
-			if(num3 > 9) {
-				//printf("ERROR? : %c", now2->val);
-				Node *horse = now2->prev;
-				now2->val = (num3 % 10) + 48;
-				horse->val += 1;
-				upcount = 0;
-				now2 = now2->prev;
-				now1 = now1->prev;
-			} else {
-				now2->val = num3 + 48;
-				if(now2->prev != NULL) {
-					now2 = now2->prev;
-					now1 = now1->prev;
+				else if (opn2->negative == 1 && opn1->negative == 0) { //ìŒìˆ˜ + ì–‘ìˆ˜
+					opn2->negative = 0;
+					calSUB(opn1,opn2);
+					ans = opn1;
 				}
-			}
-		}
-	}
-}
-void calSUB(OPN* opn2, OPN* opn1) {
-	//opn2 - opn1
-	int intP = opn2->intPart;
-	int frcP = opn2->frcPart;
-	int i, num1, num2, num3;
-	Node *now1;
-	Node *now2;
-	if (opn1->negative) {
-		// opn2 - (-opn1)ÀÎ »óÅÂ 
-		opn1->negative = 0;
-		calADD(opn1, opn2); //opn2 + opn1;
-	}
-	now1 = opn1->Operator;
-	now2 = opn2->Operator;
-	int upcount = 0;
-	//¼Ò¼ö -> Á¤¼ö·Î ³Ñ¾î°¥¶§ ³Ñ±è¼ö ±¸Çö
-	int nextcount = 0;
-	for (i=0; i<frcP; i++) {
-		//¼Ò¼öºÎ °è»ê
-		num2 = (int)(now2->val) - 48;
-		//chr -> int º¯Çü
-		num1 = (int)(now1->val) - 48;
-		num3 = num2 - num1 + nextcount;
-		//»¬¼À ÁøÇà
-		nextcount = 0;
-		//ÃÊ±âÈ­ 
-		if(num3 < 0) {
-			//0º¸´Ù ÀÛÀ½
-			Node *horse = now2->prev;
-			//¾ÕÀÚ¸® horse
-			now2->val = (num3 + 10) + 48;
-			//»¬¼À °á°ú°ª
-			if((char)horse->val == '.') {
-				//¾ÕÀÚ¸®°¡ "."ÀÌ¸é (ÇöÀç ÀÚ¸®°¡ ¼Ò¼ö Ã¹Â°ÀÚ¸® ¶ó¸é)
-				upcount = -1;
-				//¾ÕÀÚ¸®·Î -1À» ³Ñ°ÜÁÜ
-			} else {
-				//Ã¹Â°ÀÚ¸®°¡ ¾Æ´Ô
-				horse->val -= 1;
-				//¾ÕÀÚ¸® -1
-			}
-		} else {
-			//0º¸´Ù Å­
-			now2->val = num3 + 48;
-			//±×´ë·Î ´ëÀÔ
-		}
-		now2 = now2->prev;
-		//´ÙÀ½ÀÚ¸®·Î ÀÌµ¿
-		now1 = now1->prev;
-	}
-	if(now2->val == '.') {
-		// ÇöÀç "."¿¡ index µÇ¾îÀÖ´Ù¸é Á¤¼öºÎ·Î ÀÌµ¿
-		now2 = now2->prev;
-	}
-	if(now1->val == '.') {
-		now1 = now1->prev;
-	}
-	//printf("%c %c", now1->val, now2->val);
-	for (i=0; i<intP; i++) {
-		//Á¤¼öºÎ °è
-		num2 = (int)(now2->val) - 48;
-		//chr -> int º¯Çü
-		num1 = (int)(now1->val) - 48;
-		num3 = num2 - num1 + nextcount;
-		if(i == intP-2) {
-			//¸Ç¾ÕÀÚ¸®
-			if(num3 < 0) {
-				//ÀüÃ¼ ¼ö°¡ À½¼öÀÓ, °ª µÚÁı¾î Áà¾ß
-				opn2->negative = 1;
-				//À½¼ö·Î ¹Ù²Ş
-				now2->val = num3*(-1) + 48;
-				if (nextcount == -1) {
-					now2->val -= 1;
+				else { //ìŒìˆ˜ + ìŒìˆ˜
+					calADD(opn2,opn1);
+					opn2->negative = 1;
+					ans = opn2;
 				}
-				now2 = now2->next;
-			} else {
-				//ÀüÃ¼ ¼ö°¡ À½¼ö°¡ ¾Æ´Ô
-				now2->val = num3 + 48;
-			}
-			break;
-		} else {
-			//¸Ç ¾ÕÀÚ¸® ¾Æ´Ô
-			nextcount = 0;
-			if (num3 < 0) {
-				//À½¼öÀÓ
-				now2->val = 48 + 10 + num3;
-				nextcount = -1;
-			} else {
-				//À½¼ö°¡ ¾Æ´Ô
-				now2->val = num3 + 48;
-				//±×´ë·Î ´ëÀÔ
-			}
-		}
-		now2 = now2->prev;
-		now1 = now1->prev;
-	}
+                push(stack, ans);
+                now = now->next;
+            }
+            else {
+                 if (opn2->negative == 0 && opn1->negative == 0){ //ì–‘ìˆ˜ - ì–‘ìˆ˜
+					calSUB(opn2,opn1);
+					ans = opn2;
+    			}
+    			else if (opn2->negative == 0 && opn1->negative == 1) { //ì–‘ìˆ˜ - ìŒìˆ˜
+    				opn1->negative = 0;
+    				calADD(opn2,opn1);
+    				ans = opn2;
+				}
+				else if (opn2->negative == 1 && opn1->negative == 0) { //ìŒìˆ˜ - ì–‘ìˆ˜
+					calADD(opn2,opn1);
+					opn2->negative = 1;
+					ans = opn2;
+				}
+				else { //ìŒìˆ˜ - ìŒìˆ˜
+					calSUB(opn1,opn2);
+					opn1->negative = 1;
+					ans = opn1;
+				}
+                push(stack, ans);
+                now = now->next;
+            }
+            // ìŠ¤íƒì—ì„œ 2ê°œì˜ í”¼ì—°ì‚°ìë¥¼ êº¼ë‚´ ê³„ì‚°í•´ì•¼ í•œë‹¤.
+        }
+         else {
+            push(stack, now);
+            now = now->next;
+            // í”¼ ì—°ì‚°ìëŠ” ìŠ¤íƒì— ë„£ì–´ë‘”ë‹¤.
+        }
+    }
+    printf("Final Answer is ");
+    if (ans->negative == 1) {
+       printf("-");
+      }
+    OPNodePrint(ans);
 }
-void main() {
-	DLL *list = newDLL();
-	// ¹®ÀÚ¿­ (ÀüÃ¼ ¹®Àå) ÀÔ·ÂÀ» À§ÇÑ ¸®½ºÆ®
-	FILE *input = fopen("input.txt", "r");
-	char *str;
-	int cnt[2] = {
-		0, 0
-	}
-	;
-	int t = 1;
-	//Á¤¼ö ÀÚ¸´¼ö, ¼Ò¼ö ÀÚ¸´¼ö Ã¼Å©¿ëµµ
-	int ngtCheck = 0;
-	// À½¼ö Ã³¸® ¿ëµµ
-	int firstngt = 0;
-	// ¸Ç Ã³À½¿¡ À½¼ö ¿¬»êÀÚ°¡ ¿À´Â°æ¿ì Ã³¸® 
-	OP *operand = newOP();
-	// ³¡ÀÚ¸®¼ö ÀúÀåÇÏ±âÀ§ÇÑ OP
+
+void calADD(OPN* opn1, OPN* opn2){
+   // opn2 + opn1 í˜•íƒœë¡œ ë“¤ì–´ì˜´. 
+    int intP = opn1->intPart;
+    int frcP = opn1->frcPart;
+    // ìë¦¿ìˆ˜
+    int i, num1, num2, num3;
+
+    Node *now1 = opn1->Operator;
+    Node *now2 = opn2->Operator;
+    int upcount = 0;
+   
+    for(i=0; i<frcP; i++){
+        num2 = now2->val - 48;
+        num1 = now1->val - 48;
+        num3 = num1 + num2;
+      
+       if(num3 > 9){
+            Node *horse = now2->prev;
+            now2->val = (num3 % 10) + 48;
+         
+            if((char)horse->val == '.'){
+                upcount = 1;
+            }
+             else {
+                horse->val += 1;
+            }
+        }
+        else {
+            now2->val = num3 + 48;
+        }
+        now2 = now2->prev;
+        now1 = now1->prev;
+
+    }
+    if(now2->val == '.'){
+        now2 = now2->prev;
+    }
+    if(now1->val == '.'){
+        now1 = now1->prev;
+    }
+    //printf("%c %c", now1->val, now2->val);
+    for(i=0; i<intP; i++){
+        num1 = now1->val;
+        num2 = now2->val;
+        num3 = num1 + num2 - 96;
+        if(i==0){
+            num3 += upcount;
+        }
+        if(num3 > 9){
+            //printf("ERROR? : %c", now2->val);
+            Node *horse = now2->prev;
+            now2->val = (num3 % 10) + 48;         
+            horse->val += 1;
+            upcount = 0;
+            now2 = now2->prev;
+            now1 = now1->prev;
+        }
+        else {
+            now2->val = num3 + 48;
+            if(now2->prev != NULL) {
+                now2 = now2->prev;
+                now1 = now1->prev;
+            }
+        }
+    }
+}
+
+void calSUB(OPN* opn2, OPN* opn1){ //opn2 - opn1
+    int intP = opn2->intPart;
+    int frcP = opn2->frcPart;
+    int i, num1, num2, num3;
+    Node *now1;
+    Node *now2;
+      
+    if (opn2->negative == 1 && opn1->negative == 0){//ìŒìˆ˜ - ìŒìˆ˜
+        now2 = opn1->Operator; //ì‹œì‘í¬ì¸íŠ¸ ì„¤ì • (ì†Œìˆ˜ë¶€ ë§¨ ëìë¦¬), ë‘ ìˆ˜ì˜ ìœ„ì¹˜ë¥¼ ë°”ê¿ˆ
+        now1 = opn2->Operator;
+    }
+    else{
+        now1 = opn1->Operator; //ì‹œì‘í¬ì¸íŠ¸ ì„¤ì • (ì†Œìˆ˜ë¶€ ë§¨ ëìë¦¬), ì›ë˜ëŒ€ë¡œ
+        now2 = opn2->Operator;
+    }
+        
+    int upcount = 0; //ì†Œìˆ˜ -> ì •ìˆ˜ë¡œ ë„˜ì–´ê°ˆë•Œ ë„˜ê¹€ìˆ˜ êµ¬í˜„
+    int nextcount = 0;
+    for(i=0; i<frcP; i++) { //ì†Œìˆ˜ë¶€ ê³„ì‚°
+        num2 = (int)(now2->val) - 48; //chr -> int ë³€í˜•
+        num1 = (int)(now1->val) - 48;
+        num3 = num2 - num1 + nextcount; //ëº„ì…ˆ ì§„í–‰
+        nextcount = 0; //ì´ˆê¸°í™” 
+
+        if(num3 < 0){ //0ë³´ë‹¤ ì‘ìŒ
+            Node *horse = now2->prev; //ì•ìë¦¬ horse
+            now2->val = (num3 + 10) + 48; //ëº„ì…ˆ ê²°ê³¼ê°’
+         
+            if((char)horse->val == '.'){ //ì•ìë¦¬ê°€ "."ì´ë©´ (í˜„ì¬ ìë¦¬ê°€ ì†Œìˆ˜ ì²«ì§¸ìë¦¬ ë¼ë©´)
+                upcount = -1; //ì•ìë¦¬ë¡œ -1ì„ ë„˜ê²¨ì¤Œ
+            }
+           else { //ì²«ì§¸ìë¦¬ê°€ ì•„ë‹˜
+                horse->val -= 1; //ì•ìë¦¬ -1
+            }
+        }
+        else { //0ë³´ë‹¤ í¼
+            now2->val = num3 + 48; //ê·¸ëŒ€ë¡œ ëŒ€ì…
+        }
+        now2 = now2->prev; //ë‹¤ìŒìë¦¬ë¡œ ì´ë™
+        now1 = now1->prev;
+
+    }
+    if(now2->val == '.'){ // í˜„ì¬ "."ì— index ë˜ì–´ìˆë‹¤ë©´ ì •ìˆ˜ë¶€ë¡œ ì´ë™
+        now2 = now2->prev;
+    }
+    if(now1->val == '.'){
+        now1 = now1->prev;
+    }
+        //printf("%c %c", now1->val, now2->val);
+    for(i=0; i<intP; i++){ //ì •ìˆ˜ë¶€ ê³„
+        num2 = (int)(now2->val) - 48; //chr -> int ë³€í˜•
+        num1 = (int)(now1->val) - 48;
+        num3 = num2 - num1 + nextcount;
+        if(i == intP-2) { //ë§¨ì•ìë¦¬
+            if(num3 < 0) { //ì „ì²´ ìˆ˜ê°€ ìŒìˆ˜ì„, ê°’ ë’¤ì§‘ì–´ ì¤˜ì•¼
+                opn2->negative = 1; //ìŒìˆ˜ë¡œ ë°”ê¿ˆ
+                now2->val = num3*(-1) -1 + 48; //ë§¨ ì• ìˆ«ìëŠ” í•œìë¦¬ë§Œ ë¹¼ì¤€ë‹¤
+                now2 = now2->next;
+                while (now2->val != '-') {
+                	now2->val = now2->val;
+                    now2 = now2->next;
+                }
+               break;
+        	}
+        	else { //ì „ì²´ ìˆ˜ê°€ ìŒìˆ˜ê°€ ì•„ë‹˜
+               	now2->val = num3 + 48;
+        	}
+        }
+        else { //ë§¨ ì•ìë¦¬ ì•„ë‹˜
+            nextcount = 0;
+            if (num3 < 0) {//ìŒìˆ˜ì„
+                now2->val = 48 + 10 + num3;
+                nextcount = -1;
+            }
+            else { //ìŒìˆ˜ê°€ ì•„ë‹˜
+                now2->val = num3 + 48; //ê·¸ëŒ€ë¡œ ëŒ€ì…
+            }
+        }
+            now2 = now2->prev;
+            now1 = now1->prev;
+    }
+}
+
+void main(){
+    DLL *list = newDLL(); // ë¬¸ìì—´ (ì „ì²´ ë¬¸ì¥) ì…ë ¥ì„ ìœ„í•œ ë¦¬ìŠ¤íŠ¸
+    FILE *input = fopen("input.txt", "r");
+    char *str;
+    int cnt[2] = {0, 0};
+    int t = 1; //ì •ìˆ˜ ìë¦¿ìˆ˜, ì†Œìˆ˜ ìë¦¿ìˆ˜ ì²´í¬ìš©ë„
+    int ngtCheck = 0; // ìŒìˆ˜ ì²˜ë¦¬ ìš©ë„
+    int firstngt = 0; // ë§¨ ì²˜ìŒì— ìŒìˆ˜ ì—°ì‚°ìê°€ ì˜¤ëŠ”ê²½ìš° ì²˜ë¦¬ 
+    
+    OP *operand = newOP(); // ëìë¦¬ìˆ˜ ì €ì¥í•˜ê¸°ìœ„í•œ OP
+
     while (fscanf(input, "%c", &str) != EOF) {
-		if ((char)str != '=') {
-			if ((char)str == '.') {
-				// strÀÌ '.'ÀÏ ¶§
-				if(t!=1) {
-					printf("¼Ò¼ö ÀÔ·Â ¿À·ù. \nÀß¸ø ÀÔ·ÂµÈ ÀÌÈÄÀÇ °ªÀº ¹«½ÃµË´Ï´Ù.\n");
-					break;
-				}
-				t = 0;
-				append(list, (char)str);
-			} else if ((char)str == '(') {
-				append(list, (char)str);
-				Node *now = list->head;
-				while(now->next != NULL) {
-					now = now->next;
-				}
-				t = 1;
-				cnt[0]=0;
-				cnt[1]=0;
-				if(ngtCheck) {
-					OPappend(operand, now, cnt[0], cnt[1], 1);
-					ngtCheck = 0;
-				} else {
-					OPappend(operand, now, cnt[0], cnt[1], 0);
-				}
-			} else if((char)str == ')') {
-				Node *now = list->head;
-				while(now->next != NULL) {
-					now = now->next;
-				}
-				if(ngtCheck) {
-					OPappend(operand, now, cnt[0], cnt[1], 1);
-					ngtCheck = 0;
-				} else {
-					OPappend(operand, now, cnt[0], cnt[1], 0);
-				}
-				t = 1;
-				cnt[0] = 0;
-				cnt[1] = 0;
-				while(now->next != NULL) {
-					now = now->next;
-				}
-				append(list, (char)str);
-				now = now->next;
-			} else if ((char)str == '+') {
-				if(list->head != NULL) {
-					Node *opTest = list->head;
-					while(opTest->next != NULL) {
-						opTest = opTest->next;
-					}
-					if(opTest->val == '+' || opTest->val == '-') {
-						printf("¿¬»êÀÚ ÀÔ·Â ¿À·ù\n");
-						break;
-					}
-				}
-				t = 1;
-				Node *now = list->head;
-				while(now->next != NULL) {
-					// nowÆ÷ÀÎÅÍ¸¦ listÀÇ ¸Ç³¡À¸·Î ÀÌµ¿
-					now = now->next;
-				}
-				if(ngtCheck) {
-					OPappend(operand, now, cnt[0], cnt[1], 1);
-					ngtCheck = 0;
-				} else {
-					OPappend(operand, now, cnt[0], cnt[1], 0);
-				}
-				append(list, (char)str);
-				cnt[0] = 0;
-				cnt[1] = 0;
-				// OP¿¡ ¼ıÀÚ Ãß°¡ ÈÄ cnt ÃÊ±âÈ­
-				while(now->next != NULL) {
-					now = now->next;
-				}
-				if(ngtCheck) {
-					OPappend(operand, now, cnt[0], cnt[1], 1);
-				} else {
-					OPappend(operand, now, cnt[0], cnt[1], 0);
-				}
-				ngtCheck = 0;
-				//free(now);
-			} else if ((char)str == '-') {
-				if(list->head == NULL) {
-					ngtCheck = 1;
-				} else {
-					Node *opTest = list->head;
-					while(opTest->next != NULL) {
-						opTest = opTest->next;
-					}
-					if(opTest->val == '+' || opTest->val == '-') {
-						printf("¿¬»êÀÚ ÀÔ·Â ¿À·ù\n");
-						break;
-					}
-					t = 1;
-					Node *now = list->head;
-					while(now->next != NULL) {
-						// nowÆ÷ÀÎÅÍ¸¦ listÀÇ ¸Ç³¡À¸·Î ÀÌµ¿
-						now = now->next;
-					}
-					if(now->val == '(') {
-						ngtCheck = 1;
-					} else {
-						if(ngtCheck) {
-							OPappend(operand, now, cnt[0], cnt[1], 1);
-						} else {
-							OPappend(operand, now, cnt[0], cnt[1], 0);
-						}
-						ngtCheck = 0;
-						append(list, (char)str);
-						cnt[0] = 0;
-						cnt[1] = 0;
-						// OP¿¡ ¼ıÀÚ Ãß°¡ ÈÄ cnt ÃÊ±âÈ­
-						while(now->next != NULL) {
-							now = now->next;
-						}
-						if(ngtCheck) {
-							OPappend(operand, now, cnt[0], cnt[1], 1);
-						} else {
-							OPappend(operand, now, cnt[0], cnt[1], 0);
-						}
-						ngtCheck = 0;
-						//free(now);
-					}
-				}
-			} else {
-				if (t) {
-					cnt[0] += 1;
-				} else {
-					cnt[1] += 1;
-				}
-				append(list, (char)str);
-			}
-		}
-	}
-	Node *now = list->head;
-	while (now->next != NULL) {
-		now = now->next;
-	}
-	if(ngtCheck) {
-		OPappend(operand, now, cnt[0], cnt[1], 1);
-	} else {
-		OPappend(operand, now, cnt[0], cnt[1], 0);
-	}
-	//free(now);
-	fclose(input);
-	//printf("======[1Â÷°¡°ø]ÁßÀ§ Ç¥±â ¼ö½Ä ======\n");
-	//Oprint(operand);
-	operand = in_to_postfix(operand);
-	//printf("\n\n======[2Â÷°¡°ø]ÈÄÀ§ Ç¥±â º¯È¯======\n");
-	//Oprint(operand);
-	calculate(operand);
-	//print(list);
+        if ((char)str != '=') {
+            if ((char)str == '.') { // strì´ '.'ì¼ ë•Œ
+                if(t!=1){
+                   printf("ì†Œìˆ˜ ì…ë ¥ ì˜¤ë¥˜. \nì˜ëª» ì…ë ¥ëœ ì´í›„ì˜ ê°’ì€ ë¬´ì‹œë©ë‹ˆë‹¤.\n");
+                   break;
+               }
+            t = 0;
+                append(list, (char)str);
+            }
+            else if ((char)str == '('){
+                append(list, (char)str);
+                Node *now = list->head;
+                while(now->next != NULL){
+                   now = now->next;
+               }
+               t = 1;
+               cnt[0]=0;
+                cnt[1]=0;
+                if(ngtCheck){
+                    OPappend(operand, now, cnt[0], cnt[1], 1);
+                    ngtCheck = 0;
+               }else{
+                     OPappend(operand, now, cnt[0], cnt[1], 0);
+               }
+            }
+            else if((char)str == ')'){
+               Node *now = list->head;
+                while(now->next != NULL){
+                   now = now->next;
+                  }
+                if(ngtCheck){
+                   OPappend(operand, now, cnt[0], cnt[1], 1);
+                   ngtCheck = 0;
+               }else{
+                     OPappend(operand, now, cnt[0], cnt[1], 0);
+               }
+                  t = 1;
+                  cnt[0] = 0;
+                  cnt[1] = 0;
+               while(now->next != NULL){
+                   now = now->next;
+                  }
+                  append(list, (char)str);
+                  now = now->next;
+            }
+            else if ((char)str == '+') {
+                 if(list->head != NULL){
+                   Node *opTest = list->head;
+                   while(opTest->next != NULL){
+                       opTest = opTest->next;
+                     }
+                     if(opTest->val == '+' || opTest->val == '-'){
+                        printf("ì—°ì‚°ì ì…ë ¥ ì˜¤ë¥˜\n");
+                        break;
+                     }
+               }
+                  t = 1;
+                  Node *now = list->head;
+                while(now->next != NULL) { // nowí¬ì¸í„°ë¥¼ listì˜ ë§¨ëìœ¼ë¡œ ì´ë™
+                    now = now->next;
+                }
+                if(ngtCheck){
+                   OPappend(operand, now, cnt[0], cnt[1], 1);
+                   ngtCheck = 0;
+               }else{
+                     OPappend(operand, now, cnt[0], cnt[1], 0);
+               }
+                append(list, (char)str);
+                cnt[0] = 0;
+                cnt[1] = 0; // OPì— ìˆ«ì ì¶”ê°€ í›„ cnt ì´ˆê¸°í™”
+                while(now->next != NULL) {
+                   now = now->next;
+                  }
+                if(ngtCheck){
+                   OPappend(operand, now, cnt[0], cnt[1], 1);
+               }else {
+                     OPappend(operand, now, cnt[0], cnt[1], 0);
+               }
+               ngtCheck = 0;
+                //free(now);
+            }
+            else if ((char)str == '-') {
+               if(list->head == NULL){
+                   ngtCheck = 1;
+               } 
+               else {
+                   Node *opTest = list->head;
+                   while(opTest->next != NULL){
+                      opTest = opTest->next;
+                   }
+                   if(opTest->val == '+' || opTest->val == '-'){
+                      printf("ì—°ì‚°ì ì…ë ¥ ì˜¤ë¥˜\n");
+                        break;
+                   }
+                   t = 1;
+                   Node *now = list->head;
+                   while(now->next != NULL) { // nowí¬ì¸í„°ë¥¼ listì˜ ë§¨ëìœ¼ë¡œ ì´ë™
+                       now = now->next;
+                   }
+                   if(now->val == '('){
+                      ngtCheck = 1;
+                   }else{
+                       if(ngtCheck){
+                           OPappend(operand, now, cnt[0], cnt[1], 1);
+                       }else {
+                           OPappend(operand, now, cnt[0], cnt[1], 0);
+                        }
+                        ngtCheck = 0;
+                       append(list, (char)str);
+                       cnt[0] = 0;
+                       cnt[1] = 0; // OPì— ìˆ«ì ì¶”ê°€ í›„ cnt ì´ˆê¸°í™”
+                       
+                  while(now->next != NULL){
+                           now = now->next;
+                       }
+                       if(ngtCheck){
+                           OPappend(operand, now, cnt[0], cnt[1], 1);
+                        } else {
+                           OPappend(operand, now, cnt[0], cnt[1], 0);
+                        }
+                        ngtCheck = 0;
+                       //free(now);
+                   }
+               }
+            }
+            else {
+                if (t) {
+                   cnt[0] += 1;
+                }
+                else {
+                    cnt[1] += 1;
+                }
+                append(list, (char)str);
+            }
+        }
+    }
+    Node *now = list->head;
+    while (now->next != NULL) {
+        now = now->next;
+    }
+    if(ngtCheck){
+        OPappend(operand, now, cnt[0], cnt[1], 1);
+   } else {
+       OPappend(operand, now, cnt[0], cnt[1], 0);
+   }
+    //free(now);
+    fclose(input);
+    //printf("======[1ì°¨ê°€ê³µ]ì¤‘ìœ„ í‘œê¸° ìˆ˜ì‹ ======\n");
+    //Oprint(operand);
+    operand = in_to_postfix(operand);
+    //printf("\n\n======[2ì°¨ê°€ê³µ]í›„ìœ„ í‘œê¸° ë³€í™˜======\n");
+    //Oprint(operand);
+    calculate(operand);
+    //print(list);
 }
