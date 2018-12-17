@@ -442,11 +442,12 @@ void calculate(OP* OP) {
 	}
 	OPNodePrint(ans);
 }
+
 void calADD(OPN* opn1, OPN* opn2) {
-	// opn2 + opn1 형태로 들어옴. 
+	// opn2 + opn1 ?뺥깭濡??ㅼ뼱?? 
 	int intP = opn1->intPart;
 	int frcP = opn1->frcPart;
-	// 자릿수
+	// ?먮┸??
 	if(opn1->negative){
 		opn1->negative = 0;
 		calSUB(opn2, opn1);
@@ -501,13 +502,9 @@ void calADD(OPN* opn1, OPN* opn2) {
 		if(num3 > 9) {
 			//printf("ERROR? : %c", now2->val);
 			Node *horse = now2->prev;
-			Node *horse2 = now1->prev;
-			
 			now2->val = (num3 % 10) + 48;
 			now1->val = now2->val;
-			
 			horse->val += 1;
-			horse2->val += 1;
 			
 			upcount = 0;
 			now2 = now2->prev;
@@ -659,6 +656,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 	Node *TPN1 = trimOPN1->head;
 	Node *TPN2 = trimOPN2->head;
 	
+	/*
 	
 	while(1){
 		if(TPN2->prev == NULL){
@@ -676,7 +674,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 	}
 	printf("\n");
 	
-	
+	*/
 	
 	
 	while(TPN1->next != NULL){
@@ -729,13 +727,15 @@ void calMTP(OPN* opn1, OPN* opn2){
 		}
 		//trimtemp에 값을 저장하는 과정 +  
 		// 하나의 자릿수 연산이 모두 종료된 상황 
+		
+		/*
 		while(1){
 			if(TTN->prev == NULL){
 				break;
 			}
 			TTN = TTN->prev;
 		}
-		
+		*/
 		/*
 		printf("TTN : ");
 		while(1){
