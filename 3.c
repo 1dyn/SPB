@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
 typedef struct Node {
 	char val;
 	struct Node *prev;
 	struct Node *next;
 }
 Node;
-// ³ëµå
+// ë…¸ë“œ
 typedef struct DLL {
 	Node *head;
 	int size;
@@ -19,14 +21,14 @@ typedef struct OPNode {
 	struct OPN *prev;
 	struct OPN *next;
 	int negative;
-	// À½¼ö ¾ç¼ö Ã¼Å©  
+	// ìŒìˆ˜ ì–‘ìˆ˜ ì²´í¬  
 	int intPart;
-	// Á¤¼öºÎºĞ ÀÚ¸´¼ö
+	// ì •ìˆ˜ë¶€ë¶„ ìë¦¿ìˆ˜
 	int frcPart;
-	// ¼Ò¼öºÎºĞ ÀÚ¸´¼ö
+	// ì†Œìˆ˜ë¶€ë¶„ ìë¦¿ìˆ˜
 }
 OPN;
-// ¿¬»êÀÚ¿Í ÇÇ¿¬»êÀÚ Æ÷ÀÎÆÃ¿ë ³ëµå
+// ì—°ì‚°ìì™€ í”¼ì—°ì‚°ì í¬ì¸íŒ…ìš© ë…¸ë“œ
 typedef struct OP {
 	OPN *head;
 	int size;
@@ -37,13 +39,13 @@ typedef struct StackNode {
 	struct StackNode *prev;
 }
 StackNode;
-// ½ºÅÃ ³ëµå
+// ìŠ¤íƒ ë…¸ë“œ
 typedef struct Stack {
 	StackNode *top;
 	OPN* topVal;
 }
 Stack;
-// ½ºÅÃ½ºÅÃ
+// ìŠ¤íƒìŠ¤íƒ
 Node *newnode(char n) {
 	Node *temp = (Node *)malloc(sizeof(Node));
 	temp->val = n;
@@ -51,8 +53,8 @@ Node *newnode(char n) {
 	temp->next = NULL;
 	return temp;
 }
-// ÀÎÀÚ·Î char¸¦ ¹Ş´Â ÀÌÀ¯
-// Æ÷ÀÎÅÍ ¹Ş´Â °Í º¸´Ù ³ªÀ» °Í °°À½
+// ì¸ìë¡œ charë¥¼ ë°›ëŠ” ì´ìœ 
+// í¬ì¸í„° ë°›ëŠ” ê²ƒ ë³´ë‹¤ ë‚˜ì„ ê²ƒ ê°™ìŒ
 DLL *newDLL() {
 	DLL *temp = (DLL *)malloc(sizeof(DLL));
 	temp->head = NULL;
@@ -69,14 +71,14 @@ OPN *newOPN(Node *nn, int intP, int frcP, int ngt) {
 	temp->prev = NULL;
 	return temp;
 }
-// ÇÇ¿¬»êÀÚ / ¿¬»êÀÚ Æ÷ÀÎÅÍ ³ëµå
+// í”¼ì—°ì‚°ì / ì—°ì‚°ì í¬ì¸í„° ë…¸ë“œ
 OP *newOP() {
 	OP *temp = (OP *)malloc(sizeof(OP));
 	temp->head = NULL;
 	temp->size = 0;
 	return temp;
 }
-// ÇÇ¿¬»êÀÚ/ ¿¬»êÀÚ Æ÷ÀÎÆÃ ¿ëµµ
+// í”¼ì—°ì‚°ì/ ì—°ì‚°ì í¬ì¸íŒ… ìš©ë„
 StackNode *newStackNode(OPN *n) {
 	StackNode *temp = (StackNode *)malloc(sizeof(StackNode));
 	temp->val = n;
@@ -92,6 +94,29 @@ Stack *newStack() {
 // typedef
 // typedef
 // typedef
+long long getElapsedTime(unsigned int nFlag)
+{
+	const long long NANOS = 1000000000LL;
+	static struct timespec startTS, endTS;
+	static long long retDiff = 0;
+
+	if (nFlag == 0) {
+		retDiff = 0;
+		if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &startTS) == -1) {
+			printf("Failed to call clock_gettime\n");
+		}
+	}
+	else {
+		if (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &endTS) == -1) {
+			printf("Failed to call clock_gettime\n");
+		}
+		retDiff = NANOS * (endTS.tv_sec - startTS.tv_sec) + (endTS.tv_nsec - startTS.tv_nsec);
+ 	}
+
+	return retDiff;
+}
+
+
 void append(DLL *list, char n) {
 	Node* now = list->head;
 	Node* nn = newnode(n);
@@ -108,9 +133,9 @@ void append(DLL *list, char n) {
 	nn->prev = now;
 	list->size++;
 }
-// °ªÀ» ¹Ù·Î ³Ö¾îÁÙ ¼ö ÀÖ´Â DLL Append
+// ê°’ì„ ë°”ë¡œ ë„£ì–´ì¤„ ìˆ˜ ìˆëŠ” DLL Append
 void OPappend(OP *list, Node *nn, int intP, int frcP, int ngt) {
-	// nnÀÌ DLL¿¡ ÀÖ´Â ¸¶Áö¸· ÀÚ¸´°ª ÁÖ
+	// nnì´ DLLì— ìˆëŠ” ë§ˆì§€ë§‰ ìë¦¿ê°’ ì£¼
 	if(frcP == 0 && intP != 0) {
 		Node *dot = newnode('.');
 		Node *zero = newnode('0');
@@ -181,7 +206,7 @@ void insert(OPN *node, int index) {
 		}
 	}
 }
-// ÀÚ¸´¼ö ¸ÂÃß´Â ÇÔ¼ö
+// ìë¦¿ìˆ˜ ë§ì¶”ëŠ” í•¨ìˆ˜
 void push(Stack *SL, OPN *n) {
 	StackNode *nn = newStackNode(n);
 	if(SL->top == NULL) {
@@ -222,7 +247,7 @@ void OPNodePrint(OPN *opn) {
 		printf("%c", now->prev->val);
 		return;
 	}
-	//´ÜÀÏ Á¤¼öÀÎ °æ¿ì ex) 1.0 
+	//ë‹¨ì¼ ì •ìˆ˜ì¸ ê²½ìš° ex) 1.0 
 	while(k > 0) {
 		temp = temp->prev;
 		k--;
@@ -230,7 +255,7 @@ void OPNodePrint(OPN *opn) {
 	k = intP + frcP;
 	int temp1 = 0;
 	while(k > 0) {
-		if (MTPnum > 1) {//2¹ø ÀÌ»ó ¿¬»ê
+		if (MTPnum > 1) {//2ë²ˆ ì´ìƒ ì—°ì‚°
 			Node *curNode = temp;
 			for(int n=0; n < MTPnum-1; n++) {
 				curNode = curNode->next;
@@ -240,39 +265,39 @@ void OPNodePrint(OPN *opn) {
 			}
 		}
 		if(temp->val == '0' && temp1==0) {
-			// 030.3000 Ã³·³ ¾Õ¿¡ 0ÀÌ ÀÖ´Â °æ¿ì print Á¦¿Ü
+			// 030.3000 ì²˜ëŸ¼ ì•ì— 0ì´ ìˆëŠ” ê²½ìš° print ì œì™¸
 		}
 		else if(temp->val =='.') {
 			temp= temp->next;
 			k--;
 			break;
-			// .ÀÌ ³ª¿Â °æ¿ì ÀÏ´Ü print Áß´Ü.
+			// .ì´ ë‚˜ì˜¨ ê²½ìš° ì¼ë‹¨ print ì¤‘ë‹¨.
 		}
 		else {
 			temp1 = 1;
 			printf("%c", temp->val);
-			// Á¤¼ö¸¦ Ãâ·ÂÇÕ´Ï´Ù.
+			// ì •ìˆ˜ë¥¼ ì¶œë ¥í•©ë‹ˆë‹¤.
 		}
 		temp= temp->next;
 		k--;
-		// ÀÌµ¿
+		// ì´ë™
 	}
 	int jj=0;
-	// »ç½Ç .Àº ¹«Á¶°Ç ÀÖ±â ¶§¹®¿¡...  
+	// ì‚¬ì‹¤ .ì€ ë¬´ì¡°ê±´ ìˆê¸° ë•Œë¬¸ì—...  
 	while(temp->next != NULL) {
 		if(temp->val == '+' || temp->val == '-' || temp->val == '*'|| temp->val == '('|| temp->val == ')') {
-			// ÇÇ¿¬»êÀÚÀÇ  ³¡ÀÎ °æ¿ì Áß´Ü. 
+			// í”¼ì—°ì‚°ìì˜  ëì¸ ê²½ìš° ì¤‘ë‹¨. 
 			break;
 		}
 		if(temp->val != '0') {
 			temp1 = jj;
-			// µÚ¿¡ 0ÀÌ ¾Æ´Ñ °ªÀÌ ÀÖ´Ù¸é temp¿¡ ±â·Ï
+			// ë’¤ì— 0ì´ ì•„ë‹Œ ê°’ì´ ìˆë‹¤ë©´ tempì— ê¸°ë¡
 		}
 		temp = temp->next;
 		jj++;
-		// °Ë»ç
+		// ê²€ì‚¬
 	}
-	// . µÚ·Î 0ÀÌ ¾Æ´Ñ °ªÀÌ ÀÖ´ÂÁö ¾ø´ÂÁö °Ë»ç.
+	// . ë’¤ë¡œ 0ì´ ì•„ë‹Œ ê°’ì´ ìˆëŠ”ì§€ ì—†ëŠ”ì§€ ê²€ì‚¬.
 	if(temp1!=1 || temp1!=2) {
 		int ii=0;
 		printf(".");
@@ -284,17 +309,17 @@ void OPNodePrint(OPN *opn) {
 			temp = temp->next;
 		}
 	}
-	// .µÚ·Î 0ÀÌ ¾Æ´Ñ °ªÀÌ ÀÖ´Â °æ¿ì Ãâ·Â.
+	// .ë’¤ë¡œ 0ì´ ì•„ë‹Œ ê°’ì´ ìˆëŠ” ê²½ìš° ì¶œë ¥.
 }
 OP *in_to_postfix(OP *inputlist) {
 	Stack *sign = newStack();
-	// ±âÈ£¸¦ ÀúÀåÇÒ ½ºÅÃÀÎ sign ¼±¾ğ
+	// ê¸°í˜¸ë¥¼ ì €ì¥í•  ìŠ¤íƒì¸ sign ì„ ì–¸
 	OP *list = newOP();
-	// ÈÄÀ§Ç¥±â¹ıÀ¸·Î ¹Ù²Û °ªÀ» »õ·Ó°Ô ÀúÀåÇÏ´Â OP¼±¾ğ 
+	// í›„ìœ„í‘œê¸°ë²•ìœ¼ë¡œ ë°”ê¾¼ ê°’ì„ ìƒˆë¡­ê²Œ ì €ì¥í•˜ëŠ” OPì„ ì–¸ 
 	char val;
-	// ÆÄÀÏ¿¡¼­ ÀĞ¾î¿Â ÇÑ±ÛÀÚ¸¦ ÀúÀåÇÏ´Â º¯¼ö ¼±¾ğ
+	// íŒŒì¼ì—ì„œ ì½ì–´ì˜¨ í•œê¸€ìë¥¼ ì €ì¥í•˜ëŠ” ë³€ìˆ˜ ì„ ì–¸
 	OPN *now = inputlist->head;
-	// ¸®½ºÆ® ¹Ş¾Æ¿Í¼­ °ª ³Ñ°ÜÁà¾ß ÇÔ
+	// ë¦¬ìŠ¤íŠ¸ ë°›ì•„ì™€ì„œ ê°’ ë„˜ê²¨ì¤˜ì•¼ í•¨
 	while (now != NULL) {
 		char val = now->Operator->val;
 		if (val == '(') {
@@ -305,7 +330,7 @@ OP *in_to_postfix(OP *inputlist) {
 				Node *next = now->Operator->next;
 				prev->next = next;
 				next->prev = prev;
-				// DLL ¿¡¼­ ')'¸¦ Á¦°ÅÇÔ
+				// DLL ì—ì„œ ')'ë¥¼ ì œê±°í•¨
 			}
 			while (1) {
 				OPN *data = pop(sign);
@@ -329,7 +354,7 @@ OP *in_to_postfix(OP *inputlist) {
 				}
 			}
 		} else if (val == '+' || val == '-'|| val == '*') {
-			// (PopÇÏ¿© ¿¬»ê±âÈ£ÀÏ °æ¿ì list¿¡ ÀúÀå, ¾Æ´Ò°æ¿ì ´Ù½Ã PUSH) & ÇöÀç ¿¬»ê±âÈ£ PUSH
+			// (Popí•˜ì—¬ ì—°ì‚°ê¸°í˜¸ì¼ ê²½ìš° listì— ì €ì¥, ì•„ë‹ê²½ìš° ë‹¤ì‹œ PUSH) & í˜„ì¬ ì—°ì‚°ê¸°í˜¸ PUSH
 			if (sign->topVal != NULL) {
 				OPN *data = pop(sign);
 				if (data->Operator->val == '+' || data->Operator->val == '-' | data->Operator->val == '*') {
@@ -352,15 +377,15 @@ OP *in_to_postfix(OP *inputlist) {
 		OPappend(list, data->Operator, data->intPart, data->frcPart, data->negative);
 	}
 	return list;
-	// list(ÈÄÀ§Ç¥±â¹ıÀ¸·Î ¹Ù²Û DLL)¸¦ ¸®ÅÏÇØÁÜ
+	// list(í›„ìœ„í‘œê¸°ë²•ìœ¼ë¡œ ë°”ê¾¼ DLL)ë¥¼ ë¦¬í„´í•´ì¤Œ
 }
 // return = list
 void calculate(OP* OP) {
 	Stack *stack = newStack();
-	// ÇÇ ¿¬»êÀÚ ÀúÀå¿ë ½ºÅÃ
+	// í”¼ ì—°ì‚°ì ì €ì¥ìš© ìŠ¤íƒ
 	OPN *now = OP->head;
 	OPN *ans;
-	// OPN ºÒ·¯¿É´Ï´Ù...
+	// OPN ë¶ˆëŸ¬ì˜µë‹ˆë‹¤...
 	while(now != NULL) {
 		char val = now->Operator->val;
 		if(val == '+' || val == '-' || val =='*') {
@@ -373,40 +398,40 @@ void calculate(OP* OP) {
 			if(opn1_intP > opn2_intP) {
 				insert(opn2, opn1_intP - opn2_intP + 1);
 				insert(opn1, 1);
-				//opn2¿¡ opn1_intP-opn2_intP insert;
+				//opn2ì— opn1_intP-opn2_intP insert;
 			} else {
 				//opn1 < opn2;
 				insert(opn1, opn2_intP - opn1_intP + 1);
 				insert(opn2, 1);
-				//opn1¿¡ opn1_intP-opn2_intP insert;
+				//opn1ì— opn1_intP-opn2_intP insert;
 			}
 			if(opn1_frcP > opn2_frcP) {
 				insert(opn2, opn2_frcP - opn1_frcP - 1);
 				insert(opn1, -1);
-				//opn2¿¡ opn1_frcP-opn2_frcP insert;
+				//opn2ì— opn1_frcP-opn2_frcP insert;
 			} else {
 				insert(opn1, opn1_frcP - opn2_frcP - 1);
 				insert(opn2, -1);
-				//opn1¿¡ opn1_frcP-opn2_frcP insert;
+				//opn1ì— opn1_frcP-opn2_frcP insert;
 			}
 
 			if(val == '+') {
 				if (opn2->negative == 0 && opn1->negative == 0) {
-					//¾ç¼ö + ¾ç¼ö
+					//ì–‘ìˆ˜ + ì–‘ìˆ˜
 					calADD(opn2,opn1);
 					ans = opn1;
 				} else if (opn2->negative == 0 && opn1->negative == 1) {
-					//¾ç¼ö + À½¼ö
+					//ì–‘ìˆ˜ + ìŒìˆ˜
 					opn1->negative = 0;
 					calSUB(opn2,opn1);
 					ans = opn2;
 				} else if (opn2->negative == 1 && opn1->negative == 0) {
-					//À½¼ö + ¾ç¼ö
+					//ìŒìˆ˜ + ì–‘ìˆ˜
 					opn2->negative = 0;
 					calSUB(opn1,opn2);
 					ans = opn1;
 				} else {
-					//À½¼ö + À½¼ö
+					//ìŒìˆ˜ + ìŒìˆ˜
 					calADD(opn2,opn1);
 					opn2->negative = 1;
 					ans = opn2;
@@ -415,21 +440,21 @@ void calculate(OP* OP) {
 				now = now->next;
 			} else if (val == '-'){
 				if (opn2->negative == 0 && opn1->negative == 0) {
-					//¾ç¼ö - ¾ç¼ö
+					//ì–‘ìˆ˜ - ì–‘ìˆ˜
 					calSUB(opn2,opn1);
 					ans = opn2;
 				} else if (opn2->negative == 0 && opn1->negative == 1) {
-					//¾ç¼ö - À½¼ö
+					//ì–‘ìˆ˜ - ìŒìˆ˜
 					opn1->negative = 0;
 					calADD(opn2,opn1);
 					ans = opn2;
 				} else if (opn2->negative == 1 && opn1->negative == 0) {
-					//À½¼ö - ¾ç¼ö
+					//ìŒìˆ˜ - ì–‘ìˆ˜
 					calADD(opn2,opn1);
 					opn2->negative = 1;
 					ans = opn2;
 				} else {
-					//À½¼ö - À½¼ö
+					//ìŒìˆ˜ - ìŒìˆ˜
 					calSUB(opn1,opn2);
 					opn1->negative = 1;
 					ans = opn1;
@@ -437,17 +462,17 @@ void calculate(OP* OP) {
 				push(stack, ans);
 				now = now->next;
 			} else {
-				// °öÇÏ±âÀÎ °æ¿ì...
+				// ê³±í•˜ê¸°ì¸ ê²½ìš°...
 				calMTP(opn1, opn2);
 				ans = opn2;
 				push(stack, ans);
 				now = now->next;
 			}
-			// ½ºÅÃ¿¡¼­ 2°³ÀÇ ÇÇ¿¬»êÀÚ¸¦ ²¨³» °è»êÇØ¾ß ÇÑ´Ù.
+			// ìŠ¤íƒì—ì„œ 2ê°œì˜ í”¼ì—°ì‚°ìë¥¼ êº¼ë‚´ ê³„ì‚°í•´ì•¼ í•œë‹¤.
 		} else {
 			push(stack, now);
 			now = now->next;
-			// ÇÇ ¿¬»êÀÚ´Â ½ºÅÃ¿¡ ³Ö¾îµĞ´Ù.
+			// í”¼ ì—°ì‚°ìëŠ” ìŠ¤íƒì— ë„£ì–´ë‘”ë‹¤.
 		}
 	}
 	printf("Final Answer is ");
@@ -458,10 +483,10 @@ void calculate(OP* OP) {
 }
 
 void calADD(OPN* opn1, OPN* opn2) {
-	// opn2 + opn1 ?•íƒœë¡??¤ì–´?? 
+	// opn2 + opn1 ?Â•ÂƒÂœæ¿¡??ã…¼Â–?? 
 	int intP = opn1->intPart;
 	int frcP = opn1->frcPart;
-	// ?ë¦¿??
+	// ?Âç”±??
 	if(opn1->negative){
 		opn1->negative = 0;
 		calSUB(opn2, opn1);
@@ -556,13 +581,13 @@ void calSUB(OPN* opn2, OPN* opn1) {
 		num3 = num2 - num1;
 		if(num3 < 0){
 			if(o2 == o1 -1){
-				// ¸Ç Ã¹ÀÚ¸® ¼ö ºÎÅÍ ¹®Á¦°¡ »ı±ä °æ¿ì
+				// ë§¨ ì²«ìë¦¬ ìˆ˜ ë¶€í„° ë¬¸ì œê°€ ìƒê¸´ ê²½ìš°
 				opn2->negative = 1;
 				calSUB(opn1, opn2);
-				// ÀÏ´Ü ¹Ù²ã¹ö¸®°í °è»ê. 
+				// ì¼ë‹¨ ë°”ê¿”ë²„ë¦¬ê³  ê³„ì‚°. 
 				return;
 			} else if (now2->prev->val == '0'){
-				// ¹®Á¦ ÀÕ´Â °æ¿ì 
+				// ë¬¸ì œ ì‡ëŠ” ê²½ìš° 
 				int ttt = 1;
 				now2 = now2->prev;
 				now1 = now1->prev;
@@ -611,12 +636,12 @@ void calSUB(OPN* opn2, OPN* opn1) {
 
 
 void calMTP(OPN* opn1, OPN* opn2){
-	// À½¼ö Ã³¸®´Â ¿¬»êÀÌ ³¡³ª°í ÇÒ ¿¹Á¤.
-	/* °è»ê ¼ø¼­
-	  1. ÇÇ ¿¬»êÀÚ ¾ç ³¡ÀÇ 0°ú .À» Á¦°ÅÇÑ »õ·Î¿î ³ëµå¸¦ ¸¸µé¾î µĞ´Ù.
-	  2. ³¡ ºÎºĞ ºÎÅÍ ¿¬»êÀ» ½ÃÀÛÇÏ¸ç, °¢ ÀÚ¸´¼ö¿¡ °öÇØÁÖ´Â ÇüÅÂ·Î ÁøÇàÇÑ´Ù. 
-	  3. ¶ÇÇÑ ¿¬»êÀ» ÁøÇàÇÏ¸é¼­ °ªÀÌ ÀúÀåµÉ »õ·Î¿î Nodeµµ ÇÊ¿äÇÏ´Ù.
-	  4. ¿¬»êÀÌ ³¡³ª¸é ¼Ò¼ö ÀÚ¸´¼ö¿¡ ¸ÂÃß¾î .À» ³Ö¾îÁÖ´Â ¹æ½ÄÀ¸·Î ÁøÇàÇÑ´Ù. 
+	// ìŒìˆ˜ ì²˜ë¦¬ëŠ” ì—°ì‚°ì´ ëë‚˜ê³  í•  ì˜ˆì •.
+	/* ê³„ì‚° ìˆœì„œ
+	  1. í”¼ ì—°ì‚°ì ì–‘ ëì˜ 0ê³¼ .ì„ ì œê±°í•œ ìƒˆë¡œìš´ ë…¸ë“œë¥¼ ë§Œë“¤ì–´ ë‘”ë‹¤.
+	  2. ë ë¶€ë¶„ ë¶€í„° ì—°ì‚°ì„ ì‹œì‘í•˜ë©°, ê° ìë¦¿ìˆ˜ì— ê³±í•´ì£¼ëŠ” í˜•íƒœë¡œ ì§„í–‰í•œë‹¤. 
+	  3. ë˜í•œ ì—°ì‚°ì„ ì§„í–‰í•˜ë©´ì„œ ê°’ì´ ì €ì¥ë  ìƒˆë¡œìš´ Nodeë„ í•„ìš”í•˜ë‹¤.
+	  4. ì—°ì‚°ì´ ëë‚˜ë©´ ì†Œìˆ˜ ìë¦¿ìˆ˜ì— ë§ì¶”ì–´ .ì„ ë„£ì–´ì£¼ëŠ” ë°©ì‹ìœ¼ë¡œ ì§„í–‰í•œë‹¤. 
 	*/
 	
 	DLL *trimOPN1 = newDLL();
@@ -634,8 +659,8 @@ void calMTP(OPN* opn1, OPN* opn2){
 		trimNode2 = trimNode2->prev;
 	}
 	for(i=0;i<j;i++){
-		//trimOPN(DLL)¿¡ Ãß°¡ÇØÁØ´Ù.
-		//»õ TRIMµµ ¸¶Âù°¡Áö. ¿©±â¼­ ¼Ò¼ıÁ¡Àº ½Å°æ¾²Áö ¸»ÀÚ. ¾îÂ÷ÇÇ ¾Ë¾Æ¼­ µÈ´Ù. 
+		//trimOPN(DLL)ì— ì¶”ê°€í•´ì¤€ë‹¤.
+		//ìƒˆ TRIMë„ ë§ˆì°¬ê°€ì§€. ì—¬ê¸°ì„œ ì†Œìˆ«ì ì€ ì‹ ê²½ì“°ì§€ ë§ì. ì–´ì°¨í”¼ ì•Œì•„ì„œ ëœë‹¤. 
 		if(check==0){
 			cnt+=1;
 			if(trimNode1->val != '0' && trimNode2->val != '0'){
@@ -665,10 +690,10 @@ void calMTP(OPN* opn1, OPN* opn2){
 		trimNode1 = trimNode1->next;
 		trimNode2 = trimNode2->next;
 	}
-	// trim ÀÛ¾÷À» ÅëÇØ ¼Ò¼ö ÀÚ¸´¼ö¿Í »õDLLµéÀ» ¸¸µé¾úÀ½.
-	// ÇöÀç trimNodeµéÀº °¢ ÀÚ¸´¼öÀÇ ÇÏ´Ü ºÎ¿¡ À§Ä¡ÇÔ.
-	// opn1 * opn2 ÀÌ¹Ç·Î, opn2ÀÇ ÀÚ¸®¸¦ ÀÌµ¿½ÃÄÑ °ö¼ÀÀ» ÁøÇàÇÏµµ·Ï ÇÔ.
-	// ±×¸®°í ±ÍÂúÀ¸´Ï±î trimNode1, trimNode2´Â Àç»ç¿ëÇÏ·Á ÇßÀ¸³ª ÀÏ´Ü »õ·Î ¸¸µë. 
+	// trim ì‘ì—…ì„ í†µí•´ ì†Œìˆ˜ ìë¦¿ìˆ˜ì™€ ìƒˆDLLë“¤ì„ ë§Œë“¤ì—ˆìŒ.
+	// í˜„ì¬ trimNodeë“¤ì€ ê° ìë¦¿ìˆ˜ì˜ í•˜ë‹¨ ë¶€ì— ìœ„ì¹˜í•¨.
+	// opn1 * opn2 ì´ë¯€ë¡œ, opn2ì˜ ìë¦¬ë¥¼ ì´ë™ì‹œì¼œ ê³±ì…ˆì„ ì§„í–‰í•˜ë„ë¡ í•¨.
+	// ê·¸ë¦¬ê³  ê·€ì°®ìœ¼ë‹ˆê¹Œ trimNode1, trimNode2ëŠ” ì¬ì‚¬ìš©í•˜ë ¤ í–ˆìœ¼ë‚˜ ì¼ë‹¨ ìƒˆë¡œ ë§Œë“¬. 
 	
 	Node *TPN1 = trimOPN1->head;
 	Node *TPN2 = trimOPN2->head;
@@ -707,7 +732,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 	
 	Node *TTN = trimTEMP->head;
 	Node *TRN = trimResult->head;
-	// °è»ê °á°ú°ªÀÌ µé¾î°¥ ÀÌ Ä£±¸µµ...
+	// ê³„ì‚° ê²°ê³¼ê°’ì´ ë“¤ì–´ê°ˆ ì´ ì¹œêµ¬ë„...
 
 	while(1){
 		num2 = TPN2->val - 48;
@@ -725,7 +750,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 					Node *newn = newnode('0');
 					TTN->prev = newn;
 					newn->next = TTN;
-					//¾øÀ¸¸é ¾Õ¿¡ 0À» Ã¤¿ö Áİ´Ï´Ù. 
+					//ì—†ìœ¼ë©´ ì•ì— 0ì„ ì±„ì›Œ ì¤ë‹ˆë‹¤. 
 				}
 				TTN->prev->val += upcount;
 			}
@@ -742,8 +767,8 @@ void calMTP(OPN* opn1, OPN* opn2){
 			upcount = 0;
 			TTN = TTN->prev;
 		}
-		//trimtemp¿¡ °ªÀ» ÀúÀåÇÏ´Â °úÁ¤ +  
-		// ÇÏ³ªÀÇ ÀÚ¸´¼ö ¿¬»êÀÌ ¸ğµÎ Á¾·áµÈ »óÈ² 
+		//trimtempì— ê°’ì„ ì €ì¥í•˜ëŠ” ê³¼ì • +  
+		// í•˜ë‚˜ì˜ ìë¦¿ìˆ˜ ì—°ì‚°ì´ ëª¨ë‘ ì¢…ë£Œëœ ìƒí™© 
 		
 		/*
 		while(1){
@@ -769,7 +794,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 			TTN->val -= 10;
 		}
 		printf("\n");
-		// È¤½Ã ÃÊ°úÇß´Ù¸é.. ´Ã·ÁÁÖÀÚ. 
+		// í˜¹ì‹œ ì´ˆê³¼í–ˆë‹¤ë©´.. ëŠ˜ë ¤ì£¼ì. 
 		*/
 		
 		while(TTN->next != NULL){
@@ -808,9 +833,9 @@ void calMTP(OPN* opn1, OPN* opn2){
 			}
 			TRN = TRN->prev;
 		}
-		// ÀÚ¸´¼ö¸¦ ¸ÂÃçÁÖ±â À§ÇØ À§Ä¡¸¦ Á¶Á¤ÇÏ´Â ÀÛ¾÷.
-		// trimtemp DLL¿¡´Â ÇÑ ÀÚ¸´¼ö ¿¬»êµÈ °ªÀÌ ÀúÀåµÇ¾î ÀÖÀ½
-		// ÀÌÁ¦ ÀÚ¸´¼ö¸¦ ¹İ¿µÇØ trimtempÀÇ °ª°ú trimResultNode¸¦ ´õÇÏ´Â °úÁ¤¸¸ ³²À½
+		// ìë¦¿ìˆ˜ë¥¼ ë§ì¶°ì£¼ê¸° ìœ„í•´ ìœ„ì¹˜ë¥¼ ì¡°ì •í•˜ëŠ” ì‘ì—….
+		// trimtemp DLLì—ëŠ” í•œ ìë¦¿ìˆ˜ ì—°ì‚°ëœ ê°’ì´ ì €ì¥ë˜ì–´ ìˆìŒ
+		// ì´ì œ ìë¦¿ìˆ˜ë¥¼ ë°˜ì˜í•´ trimtempì˜ ê°’ê³¼ trimResultNodeë¥¼ ë”í•˜ëŠ” ê³¼ì •ë§Œ ë‚¨ìŒ
 		
 				
 		int tr1=0, tr2=0, tr3=0;
@@ -841,7 +866,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 			TTN = TTN->prev;
 			TRN = TRN->prev;
 		}
-		// temp + result µ¡¼ÀÀ» ÁøÇàÇÕ´Ï´Ù.
+		// temp + result ë§ì…ˆì„ ì§„í–‰í•©ë‹ˆë‹¤.
 		
 		while(TRN->next != NULL){
 			TRN = TRN->next;
@@ -850,7 +875,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 			TTN->val = '0';
 			TTN = TTN->next;
 		}
-		// ¿¬»ê Á¾·áÈÄ »ç¿ëÇß´ø ¾ÖµéÀº µÇµ¹·Á ³õÀ½. 
+		// ì—°ì‚° ì¢…ë£Œí›„ ì‚¬ìš©í–ˆë˜ ì• ë“¤ì€ ë˜ëŒë ¤ ë†“ìŒ. 
 		
 		dec += 1;
 		
@@ -868,9 +893,9 @@ void calMTP(OPN* opn1, OPN* opn2){
 		}
 		
 	}
-	// ÇöÀç TRNÀº ¸Ç ¿À¸¥ÂÊÀ» Æ÷ÀÎÆÃ ÇÏ°í ÀÖÀ½. 00060 ÀÌ·±´À³¦.
-	// ÀÌÁ¦ ¼Ò¼öÁ¡ °è»êÇØº¾½Ã´Ù...
-	// ¼Ò¼öÁ¡ °è»êµµ Á» ÀÌ»óÇÑ°Å °°À½... ¤Ì¤Ì  
+	// í˜„ì¬ TRNì€ ë§¨ ì˜¤ë¥¸ìª½ì„ í¬ì¸íŒ… í•˜ê³  ìˆìŒ. 00060 ì´ëŸ°ëŠë‚Œ.
+	// ì´ì œ ì†Œìˆ˜ì  ê³„ì‚°í•´ë´…ì‹œë‹¤...
+	// ì†Œìˆ˜ì  ê³„ì‚°ë„ ì¢€ ì´ìƒí•œê±° ê°™ìŒ... ã…œã…œ  
 	int sosu = opn1->frcPart * 2;
 	
 	for(i=0; i<sosu; i++){
@@ -911,7 +936,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 	for(i=0; i<j; i++){
 		trimNode1 = trimNode1->prev;
 	}
-	// ÀÌ ºÎºĞµµ ¹®Á¦°¡ ÀÖ½À´Ï´Ù. 
+	// ì´ ë¶€ë¶„ë„ ë¬¸ì œê°€ ìˆìŠµë‹ˆë‹¤. 
 	if(trimNode1->prev == NULL){
 		while(1){
 			if(TRN->next == NULL){
@@ -928,7 +953,7 @@ void calMTP(OPN* opn1, OPN* opn2){
 		TRN->next = trimNode1->next;
 		opn2->Operator = TRN;
 	}
-	// ÀçÈ°¿ë ¸ÂÀ½ ¤¾¤¾;; 
+	// ì¬í™œìš© ë§ìŒ ã…ã…;; 
 	
 	while(1){
 		if(TRN->prev == NULL){
@@ -948,9 +973,11 @@ void calMTP(OPN* opn1, OPN* opn2){
 	free(trimResult);
 }
 
-void main() {
+void main(const int argc, char **argv)
+{
+	getElapsedTime(0);
 	DLL *list = newDLL();
-	// ¹®ÀÚ¿­ (ÀüÃ¼ ¹®Àå) ÀÔ·ÂÀ» À§ÇÑ ¸®½ºÆ®
+	// ë¬¸ìì—´ (ì „ì²´ ë¬¸ì¥) ì…ë ¥ì„ ìœ„í•œ ë¦¬ìŠ¤íŠ¸
 	FILE *input = fopen("input.txt", "r");
 	char *str;
 	int cnt[2] = {
@@ -958,19 +985,19 @@ void main() {
 	}
 	;
 	int t = 1;
-	//Á¤¼ö ÀÚ¸´¼ö, ¼Ò¼ö ÀÚ¸´¼ö Ã¼Å©¿ëµµ
+	//ì •ìˆ˜ ìë¦¿ìˆ˜, ì†Œìˆ˜ ìë¦¿ìˆ˜ ì²´í¬ìš©ë„
 	int ngtCheck = 0;
-	// À½¼ö Ã³¸® ¿ëµµ
+	// ìŒìˆ˜ ì²˜ë¦¬ ìš©ë„
 	int firstngt = 0;
-	// ¸Ç Ã³À½¿¡ À½¼ö ¿¬»êÀÚ°¡ ¿À´Â°æ¿ì Ã³¸® 
+	// ë§¨ ì²˜ìŒì— ìŒìˆ˜ ì—°ì‚°ìê°€ ì˜¤ëŠ”ê²½ìš° ì²˜ë¦¬ 
 	OP *operand = newOP();
-	// ³¡ÀÚ¸®¼ö ÀúÀåÇÏ±âÀ§ÇÑ OP
+	// ëìë¦¬ìˆ˜ ì €ì¥í•˜ê¸°ìœ„í•œ OP
 	while (fscanf(input, "%c", &str) != EOF) {
 		if ((char)str != '=') {
 			if ((char)str == '.') {
-				// strÀÌ '.'ÀÏ ¶§
+				// strì´ '.'ì¼ ë•Œ
 				if(t!=1) {
-					printf("¼Ò¼ö ÀÔ·Â ¿À·ù. \nÀß¸ø ÀÔ·ÂµÈ ÀÌÈÄÀÇ °ªÀº ¹«½ÃµË´Ï´Ù.\n");
+					printf("ì†Œìˆ˜ ì…ë ¥ ì˜¤ë¥˜. \nì˜ëª» ì…ë ¥ëœ ì´í›„ì˜ ê°’ì€ ë¬´ì‹œë©ë‹ˆë‹¤.\n");
 					break;
 				}
 				t = 0;
@@ -1016,14 +1043,14 @@ void main() {
 						opTest = opTest->next;
 					}
 					if(opTest->val == '+' || opTest->val == '-') {
-						printf("¿¬»êÀÚ ÀÔ·Â ¿À·ù\n");
+						printf("ì—°ì‚°ì ì…ë ¥ ì˜¤ë¥˜\n");
 						break;
 					}
 				}
 				t = 1;
 				Node *now = list->head;
 				while(now->next != NULL) {
-					// nowÆ÷ÀÎÅÍ¸¦ listÀÇ ¸Ç³¡À¸·Î ÀÌµ¿
+					// nowí¬ì¸í„°ë¥¼ listì˜ ë§¨ëìœ¼ë¡œ ì´ë™
 					now = now->next;
 				}
 				if(ngtCheck) {
@@ -1035,7 +1062,7 @@ void main() {
 				append(list, (char)str);
 				cnt[0] = 0;
 				cnt[1] = 0;
-				// OP¿¡ ¼ıÀÚ Ãß°¡ ÈÄ cnt ÃÊ±âÈ­
+				// OPì— ìˆ«ì ì¶”ê°€ í›„ cnt ì´ˆê¸°í™”
 				while(now->next != NULL) {
 					now = now->next;
 				}
@@ -1055,13 +1082,13 @@ void main() {
 						opTest = opTest->next;
 					}
 					if(opTest->val == '+' || opTest->val == '-') {
-						printf("¿¬»êÀÚ ÀÔ·Â ¿À·ù\n");
+						printf("ì—°ì‚°ì ì…ë ¥ ì˜¤ë¥˜\n");
 						break;
 					}
 					t = 1;
 					Node *now = list->head;
 					while(now->next != NULL) {
-						// nowÆ÷ÀÎÅÍ¸¦ listÀÇ ¸Ç³¡À¸·Î ÀÌµ¿
+						// nowí¬ì¸í„°ë¥¼ listì˜ ë§¨ëìœ¼ë¡œ ì´ë™
 						now = now->next;
 					}
 					if(now->val == '(') {
@@ -1076,7 +1103,7 @@ void main() {
 						append(list, (char)str);
 						cnt[0] = 0;
 						cnt[1] = 0;
-						// OP¿¡ ¼ıÀÚ Ãß°¡ ÈÄ cnt ÃÊ±âÈ­
+						// OPì— ìˆ«ì ì¶”ê°€ í›„ cnt ì´ˆê¸°í™”
 						while(now->next != NULL) {
 							now = now->next;
 						}
@@ -1096,14 +1123,14 @@ void main() {
 						opTest = opTest->next;
 					}
 					if(opTest->val == '+' || opTest->val == '-') {
-						printf("¿¬»êÀÚ ÀÔ·Â ¿À·ù\n");
+						printf("ì—°ì‚°ì ì…ë ¥ ì˜¤ë¥˜\n");
 						break;
 					}
 				}
 				t = 1;
 				Node *now = list->head;
 				while(now->next != NULL) {
-					// nowÆ÷ÀÎÅÍ¸¦ listÀÇ ¸Ç³¡À¸·Î ÀÌµ¿
+					// nowí¬ì¸í„°ë¥¼ listì˜ ë§¨ëìœ¼ë¡œ ì´ë™
 					now = now->next;
 				}
 				if(ngtCheck) {
@@ -1115,7 +1142,7 @@ void main() {
 				append(list, (char)str);
 				cnt[0] = 0;
 				cnt[1] = 0;
-				// OP¿¡ ¼ıÀÚ Ãß°¡ ÈÄ cnt ÃÊ±âÈ­
+				// OPì— ìˆ«ì ì¶”ê°€ í›„ cnt ì´ˆê¸°í™”
 				while(now->next != NULL) {
 					now = now->next;
 				}
@@ -1147,14 +1174,15 @@ void main() {
 	}
 	//free(now);
 	fclose(input);
-	//printf("======[1Â÷°¡°ø]ÁßÀ§ Ç¥±â ¼ö½Ä ======\n");
+	//printf("======[1ì°¨ê°€ê³µ]ì¤‘ìœ„ í‘œê¸° ìˆ˜ì‹ ======\n");
 	//Oprint(operand);
-	//printf("ÀÔ·Â ¿Ï·á \n");
+	//printf("ì…ë ¥ ì™„ë£Œ \n");
 	operand = in_to_postfix(operand);
-	//printf("ÈÄÀ§ ¿¬»ê ¿Ï·á \n");
-	//printf("\n\n======[2Â÷°¡°ø]ÈÄÀ§ Ç¥±â º¯È¯======\n");
+	//printf("í›„ìœ„ ì—°ì‚° ì™„ë£Œ \n");
+	//printf("\n\n======[2ì°¨ê°€ê³µ]í›„ìœ„ í‘œê¸° ë³€í™˜======\n");
 	//Oprint(operand);
 	calculate(operand);
-	//printf("°è»ê ¿Ï·á \n");
+	//printf("ê³„ì‚° ì™„ë£Œ \n");
 	//print(list);
+	printf("\nElapsed Time: %lld\n", getElapsedTime(1));
 }
