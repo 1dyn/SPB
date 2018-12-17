@@ -246,7 +246,7 @@ void OPNodePrint(OPN *opn) {
 	int jj=0;
 	// 사실 .은 무조건 있기 때문에...  
 	while(temp->next != NULL) {
-		if(temp->val == '+' || temp->val == '-'|| temp->val == '('|| temp->val == ')') {
+		if(temp->val == '+' || temp->val == '-' || temp->val == '*'|| temp->val == '('|| temp->val == ')') {
 			// 피연산자의  끝인 경우 중단. 
 			break;
 		}
@@ -265,7 +265,7 @@ void OPNodePrint(OPN *opn) {
 		for (ii=0;ii<jj;ii++) {
 			temp = temp->prev;
 		}
-		for (ii=0;ii<temp1+1;ii++) {
+		for (ii=0;ii<temp1;ii++) {
 			printf("%c", temp->val);
 			temp = temp->next;
 		}
@@ -314,11 +314,11 @@ OP *in_to_postfix(OP *inputlist) {
 					break;
 				}
 			}
-		} else if (val == '+' || val == '-') {
+		} else if (val == '+' || val == '-'|| val == '*') {
 			// (Pop하여 연산기호일 경우 list에 저장, 아닐경우 다시 PUSH) & 현재 연산기호 PUSH
 			if (sign->topVal != NULL) {
 				OPN *data = pop(sign);
-				if (data->Operator->val == '+' || data->Operator->val == '-') {
+				if (data->Operator->val == '+' || data->Operator->val == '-' | data->Operator->val == '*') {
 					OPappend(list, data->Operator, data->intPart, data->frcPart, data->negative);
 					push(sign, now);
 				} else {
@@ -349,7 +349,7 @@ void calculate(OP* OP) {
 	// OPN 불러옵니다...
 	while(now != NULL) {
 		char val = now->Operator->val;
-		if(val == '+' || val == '-') {
+		if(val == '+' || val == '-' || val =='*') {
 			OPN *opn1 = pop(stack);
 			OPN *opn2 = pop(stack);
 			int opn1_intP = opn1->intPart;
@@ -375,13 +375,7 @@ void calculate(OP* OP) {
 				insert(opn2, -1);
 				//opn1에 opn1_frcP-opn2_frcP insert;
 			}
-			// 자릿수 맞춰주는 작업
-			//8printf("====== 자릿수 맞춰주는 작업 ======\n");
-			//printf("opn1 : 정수 %d  소수 %d\n", opn1->intPart, opn1->frcPart);
-			//printf("opn1 : 마지막 자리 %c\n", opn1->Operator->val);
-			//printf("opn2 : 정수 %d  소수 %d\n", opn2->intPart, opn2->frcPart);
-			//printf("opn2 : 마지막 자리 %c\n", opn2->Operator->val);
-			//printf("==================================\n");
+
 			if(val == '+') {
 				if (opn2->negative == 0 && opn1->negative == 0) {
 					//양수 + 양수
@@ -405,7 +399,7 @@ void calculate(OP* OP) {
 				}
 				push(stack, ans);
 				now = now->next;
-			} else {
+			} else if (val == '-'){
 				if (opn2->negative == 0 && opn1->negative == 0) {
 					//양수 - 양수
 					calSUB(opn2,opn1);
@@ -426,6 +420,12 @@ void calculate(OP* OP) {
 					opn1->negative = 1;
 					ans = opn1;
 				}
+				push(stack, ans);
+				now = now->next;
+			} else {
+				// 곱하기인 경우...
+				calMTP(opn1, opn2);
+				ans = opn2;
 				push(stack, ans);
 				now = now->next;
 			}
@@ -466,14 +466,20 @@ void calADD(OPN* opn1, OPN* opn2) {
 		num3 = num1 + num2;
 		if(num3 > 9) {
 			Node *horse = now2->prev;
+			Node *horse2 = now1->prev;
+			 
 			now2->val = (num3 % 10) + 48;
+			now1->val = now2->val;
+			
 			if((char)horse->val == '.') {
 				upcount = 1;
 			} else {
 				horse->val += 1;
+				horse2->val += 1;
 			}
 		} else {
 			now2->val = num3 + 48;
+			now1->val = now2;
 		}
 		now2 = now2->prev;
 		now1 = now1->prev;
@@ -495,13 +501,20 @@ void calADD(OPN* opn1, OPN* opn2) {
 		if(num3 > 9) {
 			//printf("ERROR? : %c", now2->val);
 			Node *horse = now2->prev;
+			Node *horse2 = now1->prev;
+			
 			now2->val = (num3 % 10) + 48;
+			now1->val = now2->val;
+			
 			horse->val += 1;
+			horse2->val += 1;
+			
 			upcount = 0;
 			now2 = now2->prev;
 			now1 = now1->prev;
 		} else {
 			now2->val = num3 + 48;
+			now1->val = now2->val;
 			if(now2->prev != NULL) {
 				now2 = now2->prev;
 				now1 = now1->prev;
@@ -509,6 +522,7 @@ void calADD(OPN* opn1, OPN* opn2) {
 		}
 	}
 }
+
 void calSUB(OPN* opn2, OPN* opn1) {
 	//opn2 - opn1
 	int o1 = opn2->intPart + opn2->frcPart;
@@ -581,6 +595,338 @@ void calSUB(OPN* opn2, OPN* opn1) {
 		}
 		o2--;
 	}
+}
+
+void calMTP(OPN* opn1, OPN* opn2){
+	// 음수 처리는 연산이 끝나고 할 예정.
+	/* 계산 순서
+	  1. 피 연산자 양 끝의 0과 .을 제거한 새로운 노드를 만들어 둔다.
+	  2. 끝 부분 부터 연산을 시작하며, 각 자릿수에 곱해주는 형태로 진행한다. 
+	  3. 또한 연산을 진행하면서 값이 저장될 새로운 Node도 필요하다.
+	  4. 연산이 끝나면 소수 자릿수에 맞추어 .을 넣어주는 방식으로 진행한다. 
+	*/ 
+	DLL *trimOPN1 = newDLL();
+	DLL *trimOPN2 = newDLL();
+	DLL *trimTEMP = newDLL();
+	DLL *trimResult = newDLL(); 
+	int i, j = opn1->frcPart + opn1->intPart, cnt=0, check=0;
+	
+	// TRIM 
+	Node *trimNode1 = opn1->Operator;
+	Node *trimNode2 = opn2->Operator;
+	
+	for(i=0; i<j-1; i++){
+		trimNode1 = trimNode1->prev;
+		trimNode2 = trimNode2->prev;
+	}
+	for(i=0;i<j;i++){
+		//trimOPN(DLL)에 추가해준다.
+		//새 TRIM도 마찬가지. 여기서 소숫점은 신경쓰지 말자. 어차피 알아서 된다. 
+		if(check==0){
+			cnt+=1;
+			if(trimNode1->val != '0' && trimNode2->val != '0'){
+				if(trimNode1->val != '.' ){
+					append(trimOPN1, trimNode1->val);
+				}
+				if(trimNode2->val != '.' ){
+					append(trimOPN2, trimNode2->val);
+				}
+			} else if(trimNode1->val == '.'){
+				check = 1;
+			} else if(trimNode2->val == '.'){
+				check = 1;
+			} else {
+				check = 1;
+				append(trimOPN1, trimNode1->val);
+				append(trimOPN2, trimNode2->val);
+			}
+		} else {
+			if(trimNode1->val != '.' ){
+				append(trimOPN1, trimNode1->val);
+			}
+			if(trimNode2->val != '.' ){
+				append(trimOPN2, trimNode2->val);
+			}
+		} 
+		trimNode1 = trimNode1->next;
+		trimNode2 = trimNode2->next;
+	}
+	// trim 작업을 통해 소수 자릿수와 새DLL들을 만들었음.
+	// 현재 trimNode들은 각 자릿수의 하단 부에 위치함.
+	// opn1 * opn2 이므로, opn2의 자리를 이동시켜 곱셈을 진행하도록 함.
+	// 그리고 귀찮으니까 trimNode1, trimNode2는 재사용하려 했으나 일단 새로 만듬. 
+	
+	Node *TPN1 = trimOPN1->head;
+	Node *TPN2 = trimOPN2->head;
+	
+	
+	while(1){
+		if(TPN2->prev == NULL){
+			break;
+		}
+		TPN2 = TPN2->prev;
+	}
+	printf("TPN2 : ");
+	while(1){
+		printf("%c", TPN2->val);
+		if(TPN2->next == NULL){
+			break;
+		}
+		TPN2 = TPN2->next;
+	}
+	printf("\n");
+	
+	
+	
+	
+	while(TPN1->next != NULL){
+		TPN1 = TPN1->next;
+	}
+	while(TPN2->next != NULL){
+		TPN2 = TPN2->next;
+	}
+	
+	int dec = 0, num1=0, num2=0, num3=0, upcount=0, tt=0;
+	append(trimTEMP, '0');
+	append(trimResult, '0');
+	
+	Node *TTN = trimTEMP->head;
+	Node *TRN = trimResult->head;
+	// 계산 결과값이 들어갈 이 친구도...
+
+	while(1){
+		num2 = TPN2->val - 48;
+		while(1){
+			num1 = TPN1->val - 48;
+			num3 = num1 * num2;
+			upcount = num3/10;
+
+			//printf("%d * %d = %d\n", num1, num2, num3);
+			
+			TTN->val += (num3 % 10);
+			
+			if(upcount > 0){
+				if(TTN->prev == NULL){
+					Node *newn = newnode('0');
+					TTN->prev = newn;
+					newn->next = TTN;
+					//없으면 앞에 0을 채워 줍니다. 
+				}
+				TTN->prev->val += upcount;
+			}
+			if(TPN1->prev == NULL){
+				break;
+			}else {
+				TPN1 = TPN1->prev;
+			}
+			if(TTN->prev == NULL){
+				Node *newn = newnode('0');
+				TTN->prev = newn;
+				newn->next = TTN;
+			}
+			upcount = 0;
+			TTN = TTN->prev;
+		}
+		//trimtemp에 값을 저장하는 과정 +  
+		// 하나의 자릿수 연산이 모두 종료된 상황 
+		while(1){
+			if(TTN->prev == NULL){
+				break;
+			}
+			TTN = TTN->prev;
+		}
+		
+		/*
+		printf("TTN : ");
+		while(1){
+			printf("%c", TTN->val);
+			if(TTN->next == NULL){
+				break;
+			}
+			TTN = TTN->next;
+		}
+		if(TTN->val > 57){
+			Node *newn = newnode('1'); 
+			TTN->prev = newn;
+			newn->next = TTN;
+			TTN->val -= 10;
+		}
+		printf("\n");
+		// 혹시 초과했다면.. 늘려주자. 
+		*/
+		
+		while(TTN->next != NULL){
+			TTN = TTN->next;
+		}
+		while(TRN->next != NULL){
+			TRN = TRN->next;
+		}
+		
+		/*
+		
+		printf("TRN : ");
+		while(1){
+			if(TRN->prev == NULL){
+				break;
+			}else{
+				TRN = TRN->prev;
+			}
+		}
+		while(1){
+			printf("%c", TRN->val);
+			if(TRN->next == NULL){
+				break;
+			} else {
+				TRN = TRN->next;
+			}
+		}
+		printf("\n");
+		*/
+		
+		for(i=0; i<dec; i++){
+			if(TRN->prev == NULL){
+				Node *newn = newnode('0'); 
+				TRN->prev = newn;
+				newn->next = TRN;
+			}
+			TRN = TRN->prev;
+		}
+		// 자릿수를 맞춰주기 위해 위치를 조정하는 작업.
+		// trimtemp DLL에는 한 자릿수 연산된 값이 저장되어 있음
+		// 이제 자릿수를 반영해 trimtemp의 값과 trimResultNode를 더하는 과정만 남음
+		
+				
+		int tr1=0, tr2=0, tr3=0;
+		while(1){
+			tr1 = TTN->val - 48;
+			tr2 = TRN->val - 48;
+			tr3 = tr1 + tr2;
+			//printf("TR1 : %d\nTR2: %d\n", tr1, tr2);
+			if(tr3 > 9){
+				TRN->val = tr3 + 38;
+				if(TRN->prev == NULL){
+					Node *newn = newnode('0'); 
+					TRN->prev = newn;
+					newn->next = TRN;
+				}
+				TRN->prev->val = 48 + tr3/10;
+			}else{
+				TRN->val = tr3 + 48;
+			}
+			if(TTN->prev != NULL && TRN->prev == NULL){
+				Node *newn = newnode('0'); 
+				TRN->prev = newn;
+				newn->next = TRN;
+			}
+			if(TTN->prev == NULL){
+				break;
+			}
+			TTN = TTN->prev;
+			TRN = TRN->prev;
+		}
+		// temp + result 덧셈을 진행합니다.
+		
+		while(TRN->next != NULL){
+			TRN = TRN->next;
+		}
+		while(TTN->next != NULL){
+			TTN->val = '0';
+			TTN = TTN->next;
+		}
+		// 연산 종료후 사용했던 애들은 되돌려 놓음. 
+		
+		dec += 1;
+		
+		while(1){
+			if(TPN1->next == NULL){
+				break;
+			} else {
+				TPN1 = TPN1->next;
+			}
+		}
+		if(TPN2->prev == NULL){
+			break;
+		}else{
+			TPN2 = TPN2->prev;
+		}
+		
+	}
+	// 현재 TRN은 맨 오른쪽을 포인팅 하고 있음. 00060 이런느낌.
+	// 이제 소수점 계산해봅시다...
+	// 소수점 계산도 좀 이상한거 같음... ㅜㅜ  
+	int sosu = opn1->frcPart * 2;
+	
+	for(i=0; i<sosu; i++){
+		TRN = TRN->prev;
+	}
+	Node *newdot = newnode('.');
+	newdot->next = TRN->next;
+	newdot->prev = TRN;
+	TRN->next->prev = newdot;
+	TRN->next = newdot;
+	
+	int IP=0, FP=0, doted=0;
+	while(1){
+		if(TRN->prev == NULL){
+			break;
+		}
+		TRN = TRN->prev;
+	}
+	while(1){
+		if(TRN->next == NULL){
+			break;
+		}
+		if(TRN->val == '.'){
+			doted=1;
+		}else{
+			if(doted){
+				FP+=1;
+			}else{
+				IP+=1;
+			}
+		}
+		TRN = TRN->next;
+	}
+	
+	trimNode1 = opn2->Operator;
+	trimNode2 = opn2->Operator;
+
+	for(i=0; i<j; i++){
+		trimNode1 = trimNode1->prev;
+	}
+	// 이 부분도 문제가 있습니다. 
+	if(trimNode1->prev == NULL){
+		while(1){
+			if(TRN->next == NULL){
+				break;
+			}
+			TRN = TRN->next;
+		}
+		trimNode2->next->prev = TRN;
+		TRN->next = trimNode2->next;
+		opn2->Operator = TRN;
+		
+	} else {
+		trimNode1->next->prev = TRN;
+		TRN->next = trimNode1->next;
+		opn2->Operator = TRN;
+	}
+	// 재활용 맞음 ㅎㅎ;; 
+	
+	while(1){
+		if(TRN->prev == NULL){
+			break;
+		}
+		TRN = TRN->prev;
+	}
+	
+	opn2->intPart = IP+1;
+	opn2->frcPart = FP;
+	
+	free(trimOPN1);
+	free(trimOPN2);
+	free(trimTEMP);
+	free(trimResult);
 }
 
 void main() {
@@ -724,6 +1070,43 @@ void main() {
 						//free(now);
 					}
 				}
+			} else if ((char)str == '*') {
+				if(list->head != NULL) {
+					Node *opTest = list->head;
+					while(opTest->next != NULL) {
+						opTest = opTest->next;
+					}
+					if(opTest->val == '+' || opTest->val == '-') {
+						printf("연산자 입력 오류\n");
+						break;
+					}
+				}
+				t = 1;
+				Node *now = list->head;
+				while(now->next != NULL) {
+					// now포인터를 list의 맨끝으로 이동
+					now = now->next;
+				}
+				if(ngtCheck) {
+					OPappend(operand, now, cnt[0], cnt[1], 1);
+					ngtCheck = 0;
+				} else {
+					OPappend(operand, now, cnt[0], cnt[1], 0);
+				}
+				append(list, (char)str);
+				cnt[0] = 0;
+				cnt[1] = 0;
+				// OP에 숫자 추가 후 cnt 초기화
+				while(now->next != NULL) {
+					now = now->next;
+				}
+				if(ngtCheck) {
+					OPappend(operand, now, cnt[0], cnt[1], 1);
+				} else {
+					OPappend(operand, now, cnt[0], cnt[1], 0);
+				}
+				ngtCheck = 0;
+				//free(now);
 			} else {
 				if (t) {
 					cnt[0] += 1;
